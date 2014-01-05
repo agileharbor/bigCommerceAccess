@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using BigCommerceAccess;
 using BigCommerceAccess.Models.Configuration;
+using BigCommerceAccess.Models.Order;
+using FluentAssertions;
 using LINQtoCSV;
 using NUnit.Framework;
 
@@ -28,9 +33,66 @@ namespace BigCommerceAccessTests.Orders
 		public void OrdersFilteredFulfillmentStatusDateLoaded()
 		{
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
-			service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
+			var orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 
-			//orders.Count.Should().Be(1);
+			orders.Count.Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
+		public async Task OrdersFilteredFulfillmentStatusDateLoadedAsync()
+		{
+			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
+			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
+
+			orders.Count.Should().BeGreaterThan(0);
+		}
+
+		[ Test ]
+		public void OrdersNotLoaded_IncorrectApiKey()
+		{
+			var config = new BigCommerceConfig( this.Config.ShopName, this.Config.UserName, "blabla" );
+			var service = this.BigCommerceFactory.CreateOrdersService( config );
+			IList< BigCommerceOrder > orders = null;
+			try
+			{
+				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
+			}
+			catch( WebException )
+			{
+				orders.Should().BeNull();
+			}
+		}
+
+		[ Test ]
+		public void OrdersNotLoaded_IncorrectShopName()
+		{
+			var config = new BigCommerceConfig( "blabla", this.Config.UserName, this.Config.ApiKey );
+			var service = this.BigCommerceFactory.CreateOrdersService( config );
+			IList< BigCommerceOrder > orders = null;
+			try
+			{
+				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
+			}
+			catch( WebException )
+			{
+				orders.Should().BeNull();
+			}
+		}
+
+		[ Test ]
+		public void OrdersNotLoaded_IncorrectUserName()
+		{
+			var config = new BigCommerceConfig( this.Config.ShopName, "blabla", this.Config.ApiKey );
+			var service = this.BigCommerceFactory.CreateOrdersService( config );
+			IList< BigCommerceOrder > orders = null;
+			try
+			{
+				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
+			}
+			catch( WebException )
+			{
+				orders.Should().BeNull();
+			}
 		}
 	}
 }

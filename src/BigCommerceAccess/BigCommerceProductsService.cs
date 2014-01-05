@@ -71,8 +71,7 @@ namespace BigCommerceAccess
 		private void UpdateProductQuantity( BigCommerceProduct product )
 		{
 			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
-			//just simpliest way to serialize with the root name.
-			var jsonContent = new { variant = product }.ToJson();
+			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
 			this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
 
@@ -83,8 +82,7 @@ namespace BigCommerceAccess
 		private async Task UpdateProductQuantityAsync( BigCommerceProduct product )
 		{
 			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
-			//just simpliest way to serialize with the root name.
-			var jsonContent = new { variant = product }.ToJson();
+			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
 			await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
 
