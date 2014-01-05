@@ -31,3 +31,4 @@ _ReSharper*/
 #Ignore common build files
 build
 log
+src\BigCommerceAccessTests\Files\BigCommerceCredentials.csv
