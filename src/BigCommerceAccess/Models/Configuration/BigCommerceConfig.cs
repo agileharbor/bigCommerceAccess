@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using CuttingEdge.Conditions;
+﻿using CuttingEdge.Conditions;
 
 namespace BigCommerceAccess.Models.Configuration
 {

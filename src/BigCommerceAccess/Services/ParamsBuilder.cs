@@ -26,15 +26,15 @@ namespace BigCommerceAccess.Services
 
 		public static string CreateGetSinglePageParams( BigCommerceCommandConfig config )
 		{
-			var endpoint = string.Format( "?{0}={1}", BigCommerceCommandParamName.Limit.Name, config.Limit );
+			var endpoint = string.Format( "?{0}={1}", BigCommerceParam.Limit.Name, config.Limit );
 			return endpoint;
 		}
 
 		public static string CreateGetNextPageParams( BigCommerceCommandConfig config )
 		{
 			var endpoint = string.Format( "?{0}={1}&{2}={3}",
-				BigCommerceCommandParamName.Limit.Name, config.Limit,
-				BigCommerceCommandParamName.Page.Name, config.Page );
+				BigCommerceParam.Limit.Name, config.Limit,
+				BigCommerceParam.Page.Name, config.Page );
 			return endpoint;
 		}
 	}

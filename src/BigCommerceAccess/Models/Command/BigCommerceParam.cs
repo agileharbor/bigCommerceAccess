@@ -7,6 +7,8 @@
 		public static readonly BigCommerceParam OrdersCreatedDateTo = new BigCommerceParam( "max_date_created" );
 		public static readonly BigCommerceParam OrdersModifiedDateFrom = new BigCommerceParam( "min_date_modified" );
 		public static readonly BigCommerceParam OrdersModifiedDateTo = new BigCommerceParam( "max_date_modified" );
+		public static readonly BigCommerceParam Limit = new BigCommerceParam( "limit" );
+		public static readonly BigCommerceParam Page = new BigCommerceParam( "page" );
 
 		private BigCommerceParam( string name )
 		{

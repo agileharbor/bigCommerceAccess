@@ -60,7 +60,6 @@
     <Compile Include="IBigCommerceOrdersService.cs" />
     <Compile Include="IBigCommerceProductsService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
-    <Compile Include="Models\Configuration\BigCommerceCommandParamName.cs" />
     <Compile Include="Models\Configuration\BigCommerceCommandConfig.cs" />
     <Compile Include="Models\Order\BigCommerceOrder.cs" />
     <Compile Include="Models\Order\BigCommerceOrderProduct.cs" />
