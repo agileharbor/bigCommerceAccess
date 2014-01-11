@@ -27,10 +27,10 @@ namespace BigCommerceAccess
 			var orders = new List< BigCommerceOrder >();
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
 
-			ActionPolicies.BigCommerceSubmitPolicy.Do( () =>
-				{
-					orders = this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
-				} );
+			ActionPolicies.Get.Do( () =>
+			{
+				orders = this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+			} );
 
 			this.GetOrdersProducts( orders );
 			this.GetOrdersShippingAddresses( orders );
@@ -43,10 +43,10 @@ namespace BigCommerceAccess
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
 			var orders = new List< BigCommerceOrder >();
 
-			await ActionPolicies.QueryAsync.Do( async () =>
-				{
-					orders = await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
-				} );
+			await ActionPolicies.GetAsync.Do( async () =>
+			{
+				orders = await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+			} );
 
 			await this.GetOrdersProductsAsync( orders );
 			await this.GetOrdersShippingAddressesAsync( orders );
@@ -59,10 +59,10 @@ namespace BigCommerceAccess
 			foreach( var order in orders )
 			{
 				var o = order;
-				ActionPolicies.BigCommerceSubmitPolicy.Do( () =>
-					{
-						o.Products = this._webRequestServices.GetResponse< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
-					} );
+				ActionPolicies.Get.Do( () =>
+				{
+					o.Products = this._webRequestServices.GetResponse< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
+				} );
 			}
 		}
 
@@ -71,10 +71,10 @@ namespace BigCommerceAccess
 			foreach( var order in orders )
 			{
 				var o = order;
-				await ActionPolicies.QueryAsync.Do( async () =>
-					{
-						o.Products = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
-					} );
+				await ActionPolicies.GetAsync.Do( async () =>
+				{
+					o.Products = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
+				} );
 			}
 		}
 
@@ -83,10 +83,10 @@ namespace BigCommerceAccess
 			foreach( var order in orders )
 			{
 				var o = order;
-				ActionPolicies.BigCommerceSubmitPolicy.Do( () =>
-					{
-						o.ShippingAddresses = this._webRequestServices.GetResponse< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
-					} );
+				ActionPolicies.Get.Do( () =>
+				{
+					o.ShippingAddresses = this._webRequestServices.GetResponse< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
+				} );
 			}
 		}
 
@@ -95,10 +95,10 @@ namespace BigCommerceAccess
 			foreach( var order in orders )
 			{
 				var o = order;
-				await ActionPolicies.QueryAsync.Do( async () =>
-					{
-						o.ShippingAddresses = await this._webRequestServices.GetResponseAsync< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
-					} );
+				await ActionPolicies.GetAsync.Do( async () =>
+				{
+					o.ShippingAddresses = await this._webRequestServices.GetResponseAsync< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
+				} );
 			}
 		}
 	}
