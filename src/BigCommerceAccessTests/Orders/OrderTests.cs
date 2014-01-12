@@ -35,7 +35,7 @@ namespace BigCommerceAccessTests.Orders
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
 			var orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 
-			orders.Count.Should().BeGreaterThan( 0 );
+			orders.Count().Should().BeGreaterThan( 0 );
 		}
 
 		[ Test ]
@@ -44,7 +44,7 @@ namespace BigCommerceAccessTests.Orders
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
 			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 
-			orders.Count.Should().BeGreaterThan(0);
+			orders.Count().Should().BeGreaterThan( 0 );
 		}
 
 		[ Test ]
@@ -52,7 +52,7 @@ namespace BigCommerceAccessTests.Orders
 		{
 			var config = new BigCommerceConfig( this.Config.ShopName, this.Config.UserName, "blabla" );
 			var service = this.BigCommerceFactory.CreateOrdersService( config );
-			IList< BigCommerceOrder > orders = null;
+			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
 				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
@@ -68,7 +68,7 @@ namespace BigCommerceAccessTests.Orders
 		{
 			var config = new BigCommerceConfig( "blabla", this.Config.UserName, this.Config.ApiKey );
 			var service = this.BigCommerceFactory.CreateOrdersService( config );
-			IList< BigCommerceOrder > orders = null;
+			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
 				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
@@ -84,7 +84,7 @@ namespace BigCommerceAccessTests.Orders
 		{
 			var config = new BigCommerceConfig( this.Config.ShopName, "blabla", this.Config.ApiKey );
 			var service = this.BigCommerceFactory.CreateOrdersService( config );
-			IList< BigCommerceOrder > orders = null;
+			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
 				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );

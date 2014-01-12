@@ -22,7 +22,7 @@ namespace BigCommerceAccess
 			this._webRequestServices = new WebRequestServices( config );
 		}
 
-		public IList< BigCommerceOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
+		public IEnumerable< BigCommerceOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
 		{
 			var orders = new List< BigCommerceOrder >();
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
@@ -38,7 +38,7 @@ namespace BigCommerceAccess
 			return orders;
 		}
 
-		public async Task< IList< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo )
+		public async Task< IEnumerable< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo )
 		{
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
 			var orders = new List< BigCommerceOrder >();

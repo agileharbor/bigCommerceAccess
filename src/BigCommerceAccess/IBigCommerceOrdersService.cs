@@ -7,7 +7,7 @@ namespace BigCommerceAccess
 {
 	public interface IBigCommerceOrdersService
 	{
-		IList< BigCommerceOrder > GetOrders( DateTime dateFrom, DateTime dateTo );
-		Task< IList< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo );
+		IEnumerable< BigCommerceOrder > GetOrders( DateTime dateFrom, DateTime dateTo );
+		Task< IEnumerable< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo );
 	}
 }

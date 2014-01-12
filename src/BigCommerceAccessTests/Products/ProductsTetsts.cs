@@ -34,7 +34,7 @@ namespace BigCommerceAccessTests.Products
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
 			var products = service.GetProducts();
 
-			products.Count.Should().BeGreaterThan( 0 );
+			products.Count().Should().BeGreaterThan( 0 );
 		}
 
 		[ Test ]
@@ -43,7 +43,7 @@ namespace BigCommerceAccessTests.Products
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
 			var products = await service.GetProductsAsync();
 
-			products.Count.Should().BeGreaterThan( 0 );
+			products.Count().Should().BeGreaterThan( 0 );
 		}
 
 		[ Test ]

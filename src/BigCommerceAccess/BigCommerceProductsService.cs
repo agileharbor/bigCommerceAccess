@@ -23,7 +23,7 @@ namespace BigCommerceAccess
 			this._webRequestServices = new WebRequestServices( config );
 		}
 
-		public IList< BigCommerceProduct > GetProducts()
+		public IEnumerable< BigCommerceProduct > GetProducts()
 		{
 			IList< BigCommerceProduct > products;
 			var productsCount = this.GetProductsCount();
@@ -36,7 +36,7 @@ namespace BigCommerceAccess
 			return products;
 		}
 
-		public async Task< IList< BigCommerceProduct > > GetProductsAsync()
+		public async Task< IEnumerable< BigCommerceProduct > > GetProductsAsync()
 		{
 			IList< BigCommerceProduct > products;
 			var productsCount = await this.GetProductsCountAsync();
