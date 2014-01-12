@@ -29,6 +29,9 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "billing_address" ) ]
 		public BigCommerceBillingAddress BillingAddress { get; set; }
 
+		[ DataMember( Name = "total_inc_tax" ) ]
+		public string Total { get; private set; }
+
 		[ DataMember( Name = "is_deleted" ) ]
 		public bool IsDeleted { get; set; }
 
@@ -40,6 +43,12 @@ namespace BigCommerceAccess.Models.Order
 			get { return this.DateShipped != DateTime.MinValue; }
 		}
 
+		public BigCommerceOrderStatusEnum OrderStatus
+		{
+			//get { return ( BigCommerceOrderStatus )Enum.ToObject( typeof( BigCommerceOrderStatus ), this.StatusId ); }
+			get { return ( BigCommerceOrderStatusEnum )this.StatusId; }
+		}
+
 		public BigCommerceOrder()
 		{
 			this.Products = new List< BigCommerceOrderProduct >();
@@ -47,14 +56,14 @@ namespace BigCommerceAccess.Models.Order
 		}
 	}
 
-	public enum BigCommerceOrderStatus
+	public enum BigCommerceOrderStatusEnum
 	{
 		Incomplete,
 		Pending,
 		Shipped,
 		PartiallyShipped,
 		Refunded,
-		Cancelled,
+		Canceled,
 		Declined,
 		AwaitingPayment,
 		AwaitingPickup,
