@@ -30,7 +30,7 @@ namespace BigCommerceAccessTests.Orders
 		}
 
 		[ Test ]
-		public void OrdersFilteredFulfillmentStatusDateLoaded()
+		public void GetOrders()
 		{
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
 			var orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
@@ -39,7 +39,7 @@ namespace BigCommerceAccessTests.Orders
 		}
 
 		[ Test ]
-		public async Task OrdersFilteredFulfillmentStatusDateLoadedAsync()
+		public async Task GetOrdersAsync()
 		{
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
 			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );

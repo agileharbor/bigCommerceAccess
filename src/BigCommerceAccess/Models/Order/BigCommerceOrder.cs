@@ -30,7 +30,7 @@ namespace BigCommerceAccess.Models.Order
 		public BigCommerceBillingAddress BillingAddress { get; set; }
 
 		[ DataMember( Name = "total_inc_tax" ) ]
-		public string Total { get; private set; }
+		public string Total { get; set; }
 
 		[ DataMember( Name = "is_deleted" ) ]
 		public bool IsDeleted { get; set; }
@@ -45,7 +45,6 @@ namespace BigCommerceAccess.Models.Order
 
 		public BigCommerceOrderStatusEnum OrderStatus
 		{
-			//get { return ( BigCommerceOrderStatus )Enum.ToObject( typeof( BigCommerceOrderStatus ), this.StatusId ); }
 			get { return ( BigCommerceOrderStatusEnum )this.StatusId; }
 		}
 
