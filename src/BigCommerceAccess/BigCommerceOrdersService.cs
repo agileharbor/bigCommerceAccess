@@ -29,7 +29,8 @@ namespace BigCommerceAccess
 
 			ActionPolicies.Get.Do( () =>
 			{
-				orders = this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+				var ordersResponse = this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+				orders = ordersResponse ?? new List< BigCommerceOrder >();
 			} );
 
 			this.GetOrdersProducts( orders );
@@ -45,7 +46,8 @@ namespace BigCommerceAccess
 
 			await ActionPolicies.GetAsync.Do( async () =>
 			{
-				orders = await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+				var ordersResponse = await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+				orders = ordersResponse ?? new List< BigCommerceOrder >();
 			} );
 
 			await this.GetOrdersProductsAsync( orders );

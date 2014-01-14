@@ -55,7 +55,7 @@ namespace BigCommerceAccess
 			foreach( var product in products )
 			{
 				var productToUpdate = product;
-				ActionPolicies.Submit.Do( () => this.UpdateProductQuantity( productToUpdate ) );
+				this.UpdateProductQuantity( productToUpdate );
 			}
 		}
 
@@ -64,7 +64,7 @@ namespace BigCommerceAccess
 			foreach( var product in products )
 			{
 				var productToUpdate = product;
-				await ActionPolicies.SubmitAsync.Do( async () => await this.UpdateProductQuantityAsync( productToUpdate ) );
+				await this.UpdateProductQuantityAsync( productToUpdate );
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace BigCommerceAccess
 			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-			this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+			ActionPolicies.Submit.Do( () => this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent ) );
 
 			//API requirement
 			//this.CreateApiDelay().Wait();
@@ -84,7 +84,7 @@ namespace BigCommerceAccess
 			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-			await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+			await ActionPolicies.SubmitAsync.Do( async () => await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent ) );
 
 			//API requirement
 			//this.CreateApiDelay().Wait();

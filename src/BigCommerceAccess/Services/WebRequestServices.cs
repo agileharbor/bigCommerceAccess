@@ -22,7 +22,7 @@ namespace BigCommerceAccess.Services
 		public T GetResponse< T >( BigCommerceCommand command, string comandParams )
 		{
 			T result;
-			var request = this.CreateServiceGetRequest( string.Concat( this._config.Host, command.Command, comandParams ) );
+			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, comandParams ) );
 			using( var response = request.GetResponse() )
 				result = ParseResponse< T >( response );
 
@@ -32,7 +32,7 @@ namespace BigCommerceAccess.Services
 		public T GetResponse< T >( string url )
 		{
 			T result;
-			var request = this.CreateServiceGetRequest( url );
+			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = request.GetResponse() )
 				result = ParseResponse< T >( response );
 
@@ -42,7 +42,7 @@ namespace BigCommerceAccess.Services
 		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string comandParams )
 		{
 			T result;
-			var request = this.CreateServiceGetRequest( string.Concat( this._config.Host, command.Command, comandParams ) );
+			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, comandParams ) );
 			using( var response = await request.GetResponseAsync() )
 				result = ParseResponse< T >( response );
 
@@ -52,7 +52,7 @@ namespace BigCommerceAccess.Services
 		public async Task< T > GetResponseAsync< T >( string url )
 		{
 			T result;
-			var request = this.CreateServiceGetRequest( url );
+			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = await request.GetResponseAsync() )
 				result = ParseResponse< T >( response );
 
@@ -74,7 +74,7 @@ namespace BigCommerceAccess.Services
 		}
 
 		#region WebRequest configuration
-		private HttpWebRequest CreateServiceGetRequest( string url )
+		private HttpWebRequest CreateGetServiceGetRequest( string url )
 		{
 			var uri = new Uri( url );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
