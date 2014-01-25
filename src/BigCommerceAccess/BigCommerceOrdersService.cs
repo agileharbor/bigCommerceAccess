@@ -46,7 +46,7 @@ namespace BigCommerceAccess
 		{
 			IList< BigCommerceOrder > orders;
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
-			var ordersCount = this.GetOrdersCount();
+			var ordersCount = await this.GetOrdersCountAsync();
 
 			if( ordersCount > RequestMaxLimit )
 				orders = await this.CollectOrdersFromAllPagesAsync( endpoint, ordersCount );
