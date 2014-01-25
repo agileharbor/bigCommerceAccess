@@ -119,7 +119,7 @@ namespace BigCommerceAccess.Services
 			return result;
 		}
 
-		public string CreateAuthenticationHeader()
+		private string CreateAuthenticationHeader()
 		{
 			var authInfo = string.Concat( this._config.UserName, ":", this._config.ApiKey );
 			authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
