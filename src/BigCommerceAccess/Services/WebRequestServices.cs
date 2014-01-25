@@ -19,10 +19,10 @@ namespace BigCommerceAccess.Services
 			this._config = config;
 		}
 
-		public T GetResponse< T >( BigCommerceCommand command, string comandParams )
+		public T GetResponse< T >( BigCommerceCommand command, string commandParams )
 		{
 			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, comandParams ) );
+			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, commandParams ) );
 			using( var response = request.GetResponse() )
 				result = ParseResponse< T >( response );
 
@@ -39,10 +39,10 @@ namespace BigCommerceAccess.Services
 			return result;
 		}
 
-		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string comandParams )
+		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string commandParams )
 		{
 			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, comandParams ) );
+			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, commandParams ) );
 			using( var response = await request.GetResponseAsync() )
 				result = ParseResponse< T >( response );
 
@@ -92,7 +92,7 @@ namespace BigCommerceAccess.Services
 
 			request.Method = WebRequestMethods.Http.Put;
 			request.ContentType = "application/json";
-			
+
 			using( var writer = new StreamWriter( request.GetRequestStream() ) )
 				writer.Write( content );
 

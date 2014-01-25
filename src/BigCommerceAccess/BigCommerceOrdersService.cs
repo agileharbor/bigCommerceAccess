@@ -22,19 +22,19 @@ namespace BigCommerceAccess
 			this._webRequestServices = new WebRequestServices( config );
 		}
 
+		#region Orders
 		public IEnumerable< BigCommerceOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
 		{
-			var orders = new List< BigCommerceOrder >();
+			IList< BigCommerceOrder > orders;
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
+			var ordersCount = this.GetOrdersCount();
 
-			ActionPolicies.Get.Do( () =>
-			{
-				var ordersResponse = this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
-				orders = ordersResponse ?? new List< BigCommerceOrder >();
+			if( ordersCount > RequestMaxLimit )
+				orders = this.CollectOrdersFromAllPages( endpoint, ordersCount );
+			else
+				orders = this.CollectOrdersFromSinglePage( endpoint );
 
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
+			orders = orders ?? new List<BigCommerceOrder>();
 
 			this.GetOrdersProducts( orders );
 			this.GetOrdersShippingAddresses( orders );
@@ -44,17 +44,16 @@ namespace BigCommerceAccess
 
 		public async Task< IEnumerable< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo )
 		{
+			IList< BigCommerceOrder > orders;
 			var endpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
-			var orders = new List< BigCommerceOrder >();
+			var ordersCount = this.GetOrdersCount();
 
-			await ActionPolicies.GetAsync.Do( async () =>
-			{
-				var ordersResponse = await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
-				orders = ordersResponse ?? new List< BigCommerceOrder >();
+			if( ordersCount > RequestMaxLimit )
+				orders = await this.CollectOrdersFromAllPagesAsync( endpoint, ordersCount );
+			else
+				orders = await this.CollectOrdersFromSinglePageAsync( endpoint );
 
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
+			orders = orders ?? new List< BigCommerceOrder >();
 
 			await this.GetOrdersProductsAsync( orders );
 			await this.GetOrdersShippingAddressesAsync( orders );
@@ -62,6 +61,82 @@ namespace BigCommerceAccess
 			return orders;
 		}
 
+		private IList< BigCommerceOrder > CollectOrdersFromAllPages( string mainEndpoint, int ordersCount )
+		{
+			var pagesCount = this.CalculatePagesCount( ordersCount );
+			var orders = new List< BigCommerceOrder >();
+
+			for( var i = 0; i < pagesCount; i++ )
+			{
+				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i + 1, RequestMaxLimit ) ) );
+
+				ActionPolicies.Get.Do( () =>
+				{
+					var ordersWithinPage = this._webRequestServices.GetResponse< IList< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint );
+					orders.AddRange( ordersWithinPage );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
+
+			return orders;
+		}
+
+		private async Task< IList< BigCommerceOrder > > CollectOrdersFromAllPagesAsync( string mainEndpoint, int ordersCount )
+		{
+			var pagesCount = this.CalculatePagesCount( ordersCount );
+			var orders = new List< BigCommerceOrder >();
+
+			for( var i = 0; i < pagesCount; i++ )
+			{
+				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i + 1, RequestMaxLimit ) ) );
+
+				await ActionPolicies.GetAsync.Do( async () =>
+				{
+					var ordersWithinPage = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint );
+					orders.AddRange( ordersWithinPage );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
+
+			return orders;
+		}
+
+		private IList< BigCommerceOrder > CollectOrdersFromSinglePage( string endpoint )
+		{
+			IList< BigCommerceOrder > orders = null;
+
+			ActionPolicies.Get.Do( () =>
+			{
+				orders = this._webRequestServices.GetResponse< IList< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+
+			return orders;
+		}
+
+		private async Task< IList< BigCommerceOrder > > CollectOrdersFromSinglePageAsync( string endpoint )
+		{
+			IList< BigCommerceOrder > orders = null;
+
+			await ActionPolicies.GetAsync.Do( async () =>
+			{
+				orders = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+
+			return orders;
+		}
+		#endregion
+		
+		#region Order products
 		private void GetOrdersProducts( IEnumerable< BigCommerceOrder > orders )
 		{
 			foreach( var order in orders )
@@ -92,7 +167,9 @@ namespace BigCommerceAccess
 
 			}
 		}
+		#endregion
 
+		#region ShippingAddress
 		private void GetOrdersShippingAddresses( IEnumerable< BigCommerceOrder > orders )
 		{
 			foreach( var order in orders )
@@ -122,5 +199,34 @@ namespace BigCommerceAccess
 				} );
 			}
 		}
+		#endregion
+
+		#region OrdersCount
+		private int GetOrdersCount()
+		{
+			var count = 0;
+			ActionPolicies.Get.Do( () =>
+			{
+				count = this._webRequestServices.GetResponse< OrdersCount >( BigCommerceCommand.GetOrdersCount, ParamsBuilder.EmptyParams ).Count;
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+			return count;
+		}
+
+		private async Task< int > GetOrdersCountAsync()
+		{
+			var count = 0;
+			await ActionPolicies.GetAsync.Do( async () =>
+			{
+				count = ( await this._webRequestServices.GetResponseAsync< OrdersCount >( BigCommerceCommand.GetOrdersCount, ParamsBuilder.EmptyParams ) ).Count;
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+			return count;
+		}
+		#endregion
 	}
 }

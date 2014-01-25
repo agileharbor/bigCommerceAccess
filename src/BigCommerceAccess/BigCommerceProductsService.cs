@@ -13,7 +13,7 @@ namespace BigCommerceAccess
 	public class BigCommerceProductsService : BigCommerceServiceBase, IBigCommerceProductsService
 	{
 		private readonly WebRequestServices _webRequestServices;
-		
+
 		public BigCommerceProductsService( BigCommerceConfig config )
 		{
 			Condition.Requires( config, "config" ).IsNotNull();
@@ -21,6 +21,7 @@ namespace BigCommerceAccess
 			this._webRequestServices = new WebRequestServices( config );
 		}
 
+		#region Get
 		public IEnumerable< BigCommerceProduct > GetProducts()
 		{
 			IList< BigCommerceProduct > products;
@@ -46,54 +47,6 @@ namespace BigCommerceAccess
 
 
 			return products;
-		}
-
-		public void UpdateProducts( IEnumerable< BigCommerceProduct > products )
-		{
-			foreach( var product in products )
-			{
-				var productToUpdate = product;
-				this.UpdateProductQuantity( productToUpdate );
-			}
-		}
-
-		public async Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products )
-		{
-			foreach( var product in products )
-			{
-				var productToUpdate = product;
-				await this.UpdateProductQuantityAsync( productToUpdate );
-			}
-		}
-
-		private void UpdateProductQuantity( BigCommerceProduct product )
-		{
-			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
-			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
-
-			ActionPolicies.Submit.Do( () =>
-			{
-				this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-		}
-
-		private async Task UpdateProductQuantityAsync( BigCommerceProduct product )
-		{
-			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
-			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
-
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
-				await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-
-			//API requirement
-			this.CreateApiDelay().Wait();
 		}
 
 		private IList< BigCommerceProduct > CollectProductsFromAllPages( int productsCount )
@@ -171,7 +124,59 @@ namespace BigCommerceAccess
 
 			return products;
 		}
+		#endregion
 
+		#region Update
+		public void UpdateProducts( IEnumerable< BigCommerceProduct > products )
+		{
+			foreach( var product in products )
+			{
+				var productToUpdate = product;
+				this.UpdateProductQuantity( productToUpdate );
+			}
+		}
+
+		public async Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products )
+		{
+			foreach( var product in products )
+			{
+				var productToUpdate = product;
+				await this.UpdateProductQuantityAsync( productToUpdate );
+			}
+		}
+
+		private void UpdateProductQuantity( BigCommerceProduct product )
+		{
+			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
+			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
+
+			ActionPolicies.Submit.Do( () =>
+			{
+				this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+		}
+
+		private async Task UpdateProductQuantityAsync( BigCommerceProduct product )
+		{
+			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
+			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
+
+			await ActionPolicies.SubmitAsync.Do( async () =>
+			{
+				await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+
+			//API requirement
+			this.CreateApiDelay().Wait();
+		}
+		#endregion
+
+		#region Count
 		private int GetProductsCount()
 		{
 			var count = 0;
@@ -197,5 +202,6 @@ namespace BigCommerceAccess
 			} );
 			return count;
 		}
+		#endregion
 	}
 }

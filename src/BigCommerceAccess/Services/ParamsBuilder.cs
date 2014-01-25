@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 
@@ -11,8 +12,8 @@ namespace BigCommerceAccess.Services
 		public static string CreateOrdersParams( DateTime startDate, DateTime endDate )
 		{
 			var endpoint = string.Format( "?{0}={1}&{2}={3}",
-				BigCommerceParam.OrdersCreatedDateFrom.Name, DateTime.SpecifyKind( startDate, DateTimeKind.Utc ).ToString( "o" ),
-				BigCommerceParam.OrdersCreatedDateTo.Name, DateTime.SpecifyKind( endDate, DateTimeKind.Utc ).ToString( "o" ) );
+				BigCommerceParam.OrdersModifiedDateFrom.Name, DateTime.SpecifyKind( startDate, DateTimeKind.Utc ).ToString( "o" ),
+				BigCommerceParam.OrdersModifiedDateTo.Name, DateTime.SpecifyKind( endDate, DateTimeKind.Utc ).ToString( "o" ) );
 			return endpoint;
 		}
 
@@ -34,6 +35,16 @@ namespace BigCommerceAccess.Services
 				BigCommerceParam.Limit.Name, config.Limit,
 				BigCommerceParam.Page.Name, config.Page );
 			return endpoint;
+		}
+
+		public static string ConcatParams( this string mainEndpoint, params string[] endpoints )
+		{
+			var result = new StringBuilder( mainEndpoint );
+
+			foreach( var endpoint in endpoints )
+				result.Append( endpoint.Replace( "?", "&" ) );
+
+			return result.ToString();
 		}
 	}
 }
