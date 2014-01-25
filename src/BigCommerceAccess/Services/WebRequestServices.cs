@@ -92,8 +92,7 @@ namespace BigCommerceAccess.Services
 
 			request.Method = WebRequestMethods.Http.Put;
 			request.ContentType = "application/json";
-			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
-
+			
 			using( var writer = new StreamWriter( request.GetRequestStream() ) )
 				writer.Write( content );
 
