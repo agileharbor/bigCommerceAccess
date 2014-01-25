@@ -11,7 +11,7 @@ using CuttingEdge.Conditions;
 
 namespace BigCommerceAccess
 {
-	public class BigCommerceOrdersService : IBigCommerceOrdersService
+	public class BigCommerceOrdersService : BigCommerceServiceBase, IBigCommerceOrdersService
 	{
 		private readonly WebRequestServices _webRequestServices;
 
@@ -31,6 +31,9 @@ namespace BigCommerceAccess
 			{
 				var ordersResponse = this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
 				orders = ordersResponse ?? new List< BigCommerceOrder >();
+
+				//API requirement
+				this.CreateApiDelay().Wait();
 			} );
 
 			this.GetOrdersProducts( orders );
@@ -48,6 +51,9 @@ namespace BigCommerceAccess
 			{
 				var ordersResponse = await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, endpoint );
 				orders = ordersResponse ?? new List< BigCommerceOrder >();
+
+				//API requirement
+				this.CreateApiDelay().Wait();
 			} );
 
 			await this.GetOrdersProductsAsync( orders );
@@ -64,6 +70,9 @@ namespace BigCommerceAccess
 				ActionPolicies.Get.Do( () =>
 				{
 					o.Products = this._webRequestServices.GetResponse< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
 				} );
 			}
 		}
@@ -76,7 +85,11 @@ namespace BigCommerceAccess
 				await ActionPolicies.GetAsync.Do( async () =>
 				{
 					o.Products = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
 				} );
+
 			}
 		}
 
@@ -88,6 +101,9 @@ namespace BigCommerceAccess
 				ActionPolicies.Get.Do( () =>
 				{
 					o.ShippingAddresses = this._webRequestServices.GetResponse< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
 				} );
 			}
 		}
@@ -100,6 +116,9 @@ namespace BigCommerceAccess
 				await ActionPolicies.GetAsync.Do( async () =>
 				{
 					o.ShippingAddresses = await this._webRequestServices.GetResponseAsync< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
 				} );
 			}
 		}
