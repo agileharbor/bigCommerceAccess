@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using BigCommerceAccess.Models.Command;
@@ -76,6 +78,8 @@ namespace BigCommerceAccess.Services
 		#region WebRequest configuration
 		private HttpWebRequest CreateGetServiceGetRequest( string url )
 		{
+			this.AllowInvalidCertificate();
+
 			var uri = new Uri( url );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
@@ -87,6 +91,8 @@ namespace BigCommerceAccess.Services
 
 		private HttpWebRequest CreateServicePutRequest( BigCommerceCommand command, string endpoint, string content )
 		{
+			this.AllowInvalidCertificate();
+
 			var uri = new Uri( string.Concat( this._config.Host, command.Command, endpoint ) );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
@@ -131,6 +137,18 @@ namespace BigCommerceAccess.Services
 		private void LogUpdateInfo( string url, HttpStatusCode statusCode, string jsonContent )
 		{
 			this.Log().Trace( "[bigcommerce]\tPUT/POST call for the url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+		}
+		#endregion
+
+		#region SSL certificate hack
+		private void AllowInvalidCertificate()
+		{
+			ServicePointManager.ServerCertificateValidationCallback += AllowCert;
+		}
+
+		private bool AllowCert( object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error )
+		{
+			return true;
 		}
 		#endregion
 	}

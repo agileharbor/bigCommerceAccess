@@ -41,7 +41,6 @@ namespace BigCommerceAccessTests.Orders
 		[ Test ]
 		public async Task GetOrdersAsync()
 		{
-			var diff = DateTime.Now - DateTime.UtcNow;
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
 			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 
