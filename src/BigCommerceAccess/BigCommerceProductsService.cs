@@ -211,9 +211,6 @@ namespace BigCommerceAccess
 				//API requirement
 				this.CreateApiDelay().Wait();
 			} );
-
-			//API requirement
-			this.CreateApiDelay().Wait();
 		}
 
 		private void UpdateProductOptionQuantity( BigCommerceProductOption productOption )
