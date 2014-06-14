@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
+using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Address;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
@@ -207,7 +208,7 @@ namespace BigCommerceAccess
 			var count = 0;
 			ActionPolicies.Get.Do( () =>
 			{
-				count = this._webRequestServices.GetResponse< OrdersCount >( BigCommerceCommand.GetOrdersCount, ParamsBuilder.EmptyParams ).Count;
+				count = this._webRequestServices.GetResponse< BigCommerceItemsCount >( BigCommerceCommand.GetOrdersCount, ParamsBuilder.EmptyParams ).Count;
 
 				//API requirement
 				this.CreateApiDelay().Wait();
@@ -220,7 +221,7 @@ namespace BigCommerceAccess
 			var count = 0;
 			await ActionPolicies.GetAsync.Do( async () =>
 			{
-				count = ( await this._webRequestServices.GetResponseAsync< OrdersCount >( BigCommerceCommand.GetOrdersCount, ParamsBuilder.EmptyParams ) ).Count;
+				count = ( await this._webRequestServices.GetResponseAsync< BigCommerceItemsCount >( BigCommerceCommand.GetOrdersCount, ParamsBuilder.EmptyParams ) ).Count;
 
 				//API requirement
 				this.CreateApiDelay().Wait();

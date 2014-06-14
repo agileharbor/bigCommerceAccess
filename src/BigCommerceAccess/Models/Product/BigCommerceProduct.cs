@@ -1,17 +1,24 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace BigCommerceAccess.Models.Product
 {
 	[ DataContract ]
-	public class BigCommerceProduct
+	public class BigCommerceProduct : BigCommerceProductBase
 	{
-		[ DataMember( Name = "id" ) ]
-		public long Id { get; set; }
+		[ DataMember( Name = "inventory_tracking" ) ]
+		public InventoryTrackingEnum InventoryTracking { get; set; }
 
-		[ DataMember( Name = "inventory_level" ) ]
-		public string Quantity { get; set; }
+		[ DataMember( Name = "skus" ) ]
+		public BigCommerceReferenceObject ProductSkusReference { get; set; }
 
-		[ DataMember( Name = "sku" ) ]
-		public string Sku { get; set; }
+		public IList< BigCommerceProductOption > ProductSkus { get; set; }
+	}
+
+	public enum InventoryTrackingEnum
+	{
+		none,
+		simple,
+		sku
 	}
 }

@@ -33,7 +33,7 @@ namespace BigCommerceAccessTests.Orders
 		public void GetOrders()
 		{
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
-			var orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
+			var orders = service.GetOrders( DateTime.UtcNow.AddDays( -400 ), DateTime.UtcNow );
 
 			orders.Count().Should().BeGreaterThan( 0 );
 		}

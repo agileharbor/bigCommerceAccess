@@ -61,6 +61,7 @@
     <Compile Include="IBigCommerceOrdersService.cs" />
     <Compile Include="IBigCommerceProductsService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
+    <Compile Include="Models\BigCommerceObjectBase.cs" />
     <Compile Include="Models\Configuration\BigCommerceCommandConfig.cs" />
     <Compile Include="Models\Order\BigCommerceOrder.cs" />
     <Compile Include="Models\Order\BigCommerceOrderProduct.cs" />
@@ -70,9 +71,10 @@
     <Compile Include="Models\Configuration\BigCommerceConfig.cs" />
     <Compile Include="Models\Command\BigCommerceCommand.cs" />
     <Compile Include="Models\Address\BigCommerceShippingAddress.cs" />
-    <Compile Include="Models\Order\OrdersCount.cs" />
+    <Compile Include="Models\BigCommerceItemsCount.cs" />
     <Compile Include="Models\Product\BigCommerceProduct.cs" />
-    <Compile Include="Models\Product\ProductsCount.cs" />
+    <Compile Include="Models\Product\BigCommerceProductBase.cs" />
+    <Compile Include="Models\Product\BigCommerceProductOption.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ParamsBuilder.cs" />
     <Compile Include="Services\WebRequestServices.cs" />

@@ -1,9 +1,9 @@
 ﻿using System.Runtime.Serialization;
 
-namespace BigCommerceAccess.Models.Order
+namespace BigCommerceAccess.Models
 {
 	[ DataContract ]
-	public class OrdersCount
+	sealed class BigCommerceItemsCount
 	{
 		[ DataMember( Name = "count" ) ]
 		public int Count { get; set; }

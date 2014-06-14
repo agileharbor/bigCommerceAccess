@@ -23,6 +23,11 @@ namespace BigCommerceAccess.Services
 			return endpoint;
 		}
 
+		public static string CreateProductOptionUpdateEndpoint( long productId, long optionId )
+		{
+			return string.Format( "{0}/skus/{1}.json", productId, optionId );
+		}
+
 		public static string CreateGetSinglePageParams( BigCommerceCommandConfig config )
 		{
 			var endpoint = string.Format( "?{0}={1}", BigCommerceParam.Limit.Name, config.Limit );

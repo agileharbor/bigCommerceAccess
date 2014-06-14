@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
+using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
@@ -32,6 +34,8 @@ namespace BigCommerceAccess
 			else
 				products = this.CollectProductsFromSinglePage();
 
+			this.FillProductsSkus( products );
+
 			return products;
 		}
 
@@ -45,6 +49,7 @@ namespace BigCommerceAccess
 			else
 				products = await this.CollectProductsFromSinglePageAsync();
 
+			await this.FillProductsSkusAsync( products );
 
 			return products;
 		}
@@ -124,25 +129,61 @@ namespace BigCommerceAccess
 
 			return products;
 		}
+
+		private void FillProductsSkus( IEnumerable< BigCommerceProduct > products )
+		{
+			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
+			{
+				var p = product;
+				ActionPolicies.Get.Do( () =>
+				{
+					p.ProductSkus = this._webRequestServices.GetResponse< IList< BigCommerceProductOption > >( p.ProductSkusReference.Url );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
+		}
+
+		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products )
+		{
+			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
+			{
+				var p = product;
+				await ActionPolicies.GetAsync.Do( async () =>
+				{
+					p.ProductSkus = await this._webRequestServices.GetResponseAsync< IList< BigCommerceProductOption > >( p.ProductSkusReference.Url );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
+		}
 		#endregion
 
 		#region Update
 		public void UpdateProducts( IEnumerable< BigCommerceProduct > products )
 		{
 			foreach( var product in products )
-			{
-				var productToUpdate = product;
-				this.UpdateProductQuantity( productToUpdate );
-			}
+				this.UpdateProductQuantity( product );
 		}
 
 		public async Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products )
 		{
 			foreach( var product in products )
-			{
-				var productToUpdate = product;
-				await this.UpdateProductQuantityAsync( productToUpdate );
-			}
+				await this.UpdateProductQuantityAsync( product );
+		}
+
+		public void UpdateProductOptions( IEnumerable< BigCommerceProductOption > productOptions )
+		{
+			foreach( var option in productOptions )
+				this.UpdateProductOptionQuantity( option );
+		}
+
+		public async Task UpdateProductOptionsAsync( IEnumerable< BigCommerceProductOption > productOptions )
+		{
+			foreach( var option in productOptions )
+				await this.UpdateProductOptionQuantityAsync( option );
 		}
 
 		private void UpdateProductQuantity( BigCommerceProduct product )
@@ -174,6 +215,34 @@ namespace BigCommerceAccess
 			//API requirement
 			this.CreateApiDelay().Wait();
 		}
+
+		private void UpdateProductOptionQuantity( BigCommerceProductOption productOption )
+		{
+			var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( productOption.ProductId, productOption.Id );
+			var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
+
+			ActionPolicies.Submit.Do( () =>
+			{
+				this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+		}
+
+		private async Task UpdateProductOptionQuantityAsync( BigCommerceProductOption productOption )
+		{
+			var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( productOption.ProductId, productOption.Id );
+			var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
+
+			await ActionPolicies.SubmitAsync.Do( async () =>
+			{
+				await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+
+				//API requirement
+				this.CreateApiDelay().Wait();
+			} );
+		}
 		#endregion
 
 		#region Count
@@ -182,7 +251,7 @@ namespace BigCommerceAccess
 			var count = 0;
 			ActionPolicies.Get.Do( () =>
 			{
-				count = this._webRequestServices.GetResponse< ProductsCount >( BigCommerceCommand.GetProductsCount, ParamsBuilder.EmptyParams ).Count;
+				count = this._webRequestServices.GetResponse< BigCommerceItemsCount >( BigCommerceCommand.GetProductsCount, ParamsBuilder.EmptyParams ).Count;
 
 				//API requirement
 				this.CreateApiDelay().Wait();
@@ -195,7 +264,7 @@ namespace BigCommerceAccess
 			var count = 0;
 			await ActionPolicies.GetAsync.Do( async () =>
 			{
-				count = ( await this._webRequestServices.GetResponseAsync< ProductsCount >( BigCommerceCommand.GetProductsCount, ParamsBuilder.EmptyParams ) ).Count;
+				count = ( await this._webRequestServices.GetResponseAsync< BigCommerceItemsCount >( BigCommerceCommand.GetProductsCount, ParamsBuilder.EmptyParams ) ).Count;
 
 				//API requirement
 				this.CreateApiDelay().Wait();

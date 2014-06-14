@@ -6,11 +6,8 @@ using BigCommerceAccess.Models.Address;
 namespace BigCommerceAccess.Models.Order
 {
 	[ DataContract ]
-	public class BigCommerceOrder
+	public class BigCommerceOrder : BigCommerceObjectBase
 	{
-		[ DataMember( Name = "id" ) ]
-		public long Id { get; set; }
-
 		[ DataMember( Name = "status_id" ) ]
 		public int StatusId { get; set; }
 

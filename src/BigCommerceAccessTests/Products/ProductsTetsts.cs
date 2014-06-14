@@ -47,12 +47,40 @@ namespace BigCommerceAccessTests.Products
 		}
 
 		[ Test ]
-		public void ProductVQuantityUpdated()
+		public void ProductsQuantityUpdated()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
 
-			var productToUpdate = new BigCommerceProduct { Id = 74, Quantity = "55" };
+			var productToUpdate = new BigCommerceProduct { Id = 75, Quantity = "6" };
 			service.UpdateProducts( new List< BigCommerceProduct > { productToUpdate } );
 		}
+
+		[ Test ]
+		public async Task ProductsQuantityUpdatedAsync()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
+
+			var productToUpdate = new BigCommerceProduct { Id = 75, Quantity = "6" };
+			await service.UpdateProductsAsync( new List< BigCommerceProduct > { productToUpdate } );
+		}
+
+		[ Test ]
+		public void ProductOptionsQuantityUpdated()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
+
+			var productToUpdate = new BigCommerceProductOption { ProductId = 75, Id = 4, Quantity = "6" };
+			service.UpdateProductOptions( new List< BigCommerceProductOption > { productToUpdate } );
+		}
+
+		[ Test ]
+		public async Task ProductOptionsQuantityUpdatedAsync()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
+
+			var productToUpdate = new BigCommerceProductOption { ProductId = 75, Id = 4, Quantity = "6" };
+			await service.UpdateProductOptionsAsync( new List< BigCommerceProductOption > { productToUpdate } );
+		}
+
 	}
 }

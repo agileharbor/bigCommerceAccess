@@ -11,5 +11,9 @@ namespace BigCommerceAccess
 
 		void UpdateProducts( IEnumerable< BigCommerceProduct > products );
 		Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products );
+
+		void UpdateProductOptions( IEnumerable< BigCommerceProductOption > productOptions );
+
+		Task UpdateProductOptionsAsync( IEnumerable< BigCommerceProductOption > productOptions );
 	}
 }
