@@ -10,9 +10,9 @@ namespace BigCommerceAccess.Models.Product
 		public InventoryTrackingEnum InventoryTracking { get; set; }
 
 		[ DataMember( Name = "skus" ) ]
-		public BigCommerceReferenceObject ProductSkusReference { get; set; }
+		public BigCommerceReferenceObject ProductOptionsReference { get; set; }
 
-		public IList< BigCommerceProductOption > ProductSkus { get; set; }
+		public IList< BigCommerceProductOption > ProductOptions { get; set; }
 	}
 
 	public enum InventoryTrackingEnum

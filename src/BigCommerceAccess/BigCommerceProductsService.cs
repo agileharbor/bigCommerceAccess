@@ -137,7 +137,7 @@ namespace BigCommerceAccess
 				var p = product;
 				ActionPolicies.Get.Do( () =>
 				{
-					p.ProductSkus = this._webRequestServices.GetResponse< IList< BigCommerceProductOption > >( p.ProductSkusReference.Url );
+					p.ProductOptions = this._webRequestServices.GetResponse< IList< BigCommerceProductOption > >( p.ProductOptionsReference.Url );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
@@ -152,7 +152,7 @@ namespace BigCommerceAccess
 				var p = product;
 				await ActionPolicies.GetAsync.Do( async () =>
 				{
-					p.ProductSkus = await this._webRequestServices.GetResponseAsync< IList< BigCommerceProductOption > >( p.ProductSkusReference.Url );
+					p.ProductOptions = await this._webRequestServices.GetResponseAsync< IList< BigCommerceProductOption > >( p.ProductOptionsReference.Url );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
