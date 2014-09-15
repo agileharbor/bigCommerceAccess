@@ -74,7 +74,9 @@ namespace BigCommerceAccess
 				ActionPolicies.Get.Do( () =>
 				{
 					var ordersWithinPage = this._webRequestServices.GetResponse< IList< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint );
-					orders.AddRange( ordersWithinPage );
+
+					if( ordersWithinPage != null )
+						orders.AddRange( ordersWithinPage );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
@@ -96,7 +98,9 @@ namespace BigCommerceAccess
 				await ActionPolicies.GetAsync.Do( async () =>
 				{
 					var ordersWithinPage = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint );
-					orders.AddRange( ordersWithinPage );
+
+					if( ordersWithinPage != null )
+						orders.AddRange( ordersWithinPage );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
