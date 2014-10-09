@@ -51,10 +51,10 @@ namespace BigCommerceAccessTests.Orders
 		public void OrdersNotLoaded_IncorrectApiKey()
 		{
 			var config = new BigCommerceConfig( this.Config.ShopName, this.Config.UserName, "blabla" );
-			var service = this.BigCommerceFactory.CreateOrdersService( config );
 			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
+				var service = this.BigCommerceFactory.CreateOrdersService( config );
 				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 			}
 			catch( WebException )
@@ -67,10 +67,10 @@ namespace BigCommerceAccessTests.Orders
 		public void OrdersNotLoaded_IncorrectShopName()
 		{
 			var config = new BigCommerceConfig( "blabla", this.Config.UserName, this.Config.ApiKey );
-			var service = this.BigCommerceFactory.CreateOrdersService( config );
 			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
+				var service = this.BigCommerceFactory.CreateOrdersService( config );
 				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 			}
 			catch( WebException )
@@ -83,10 +83,10 @@ namespace BigCommerceAccessTests.Orders
 		public void OrdersNotLoaded_IncorrectUserName()
 		{
 			var config = new BigCommerceConfig( this.Config.ShopName, "blabla", this.Config.ApiKey );
-			var service = this.BigCommerceFactory.CreateOrdersService( config );
 			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
+				var service = this.BigCommerceFactory.CreateOrdersService( config );
 				orders = service.GetOrders( DateTime.UtcNow.AddDays( -200 ), DateTime.UtcNow );
 			}
 			catch( WebException )
