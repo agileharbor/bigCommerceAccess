@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using Netco.Logging;
@@ -15,17 +16,31 @@ namespace BigCommerceAccess.Services
 	internal class WebRequestServices
 	{
 		private readonly BigCommerceConfig _config;
+		private string _host;
 
 		public WebRequestServices( BigCommerceConfig config )
 		{
 			this._config = config;
+			this._host = config.NativeHost;
+
+			this.ResolveHost( string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCount.Command ) );
 		}
 
 		public T GetResponse< T >( BigCommerceCommand command, string commandParams )
 		{
 			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, commandParams ) );
+			var request = this.CreateGetServiceGetRequest( string.Concat( this._host, command.Command, commandParams ) );
 			using( var response = request.GetResponse() )
+				result = ParseResponse< T >( response );
+
+			return result;
+		}
+
+		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string commandParams )
+		{
+			T result;
+			var request = this.CreateGetServiceGetRequest( string.Concat( this._host, command.Command, commandParams ) );
+			using( var response = await request.GetResponseAsync() )
 				result = ParseResponse< T >( response );
 
 			return result;
@@ -37,17 +52,6 @@ namespace BigCommerceAccess.Services
 			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = request.GetResponse() )
 				result = ParseResponse< T >( response );
-
-			return result;
-		}
-
-		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string commandParams )
-		{
-			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( this._config.Host, command.Command, commandParams ) );
-			using( var response = await request.GetResponseAsync() )
-				result = ParseResponse< T >( response );
-
 			return result;
 		}
 
@@ -93,7 +97,7 @@ namespace BigCommerceAccess.Services
 		{
 			this.AllowInvalidCertificate();
 
-			var uri = new Uri( string.Concat( this._config.Host, command.Command, endpoint ) );
+			var uri = new Uri( string.Concat( this._host, command.Command, endpoint ) );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
 			request.Method = WebRequestMethods.Http.Put;
@@ -132,6 +136,27 @@ namespace BigCommerceAccess.Services
 			authInfo = Convert.ToBase64String( Encoding.Default.GetBytes( authInfo ) );
 
 			return string.Concat( "Basic ", authInfo );
+		}
+
+		private void ResolveHost( string url )
+		{
+			try
+			{
+				this.GetResponse< BigCommerceItemsCount >( url );
+
+			}
+			catch( WebException )
+			{
+				if( url.Contains( this._config.NativeHost ) )
+				{
+					var customUrl = string.Concat( this._config.CustomHost, BigCommerceCommand.GetOrdersCount.Command );
+					this._host = this._config.CustomHost;
+
+					this.ResolveHost( customUrl );
+				}
+
+				throw;
+			}
 		}
 
 		private void LogUpdateInfo( string url, HttpStatusCode statusCode, string jsonContent )
