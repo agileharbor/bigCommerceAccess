@@ -143,7 +143,6 @@ namespace BigCommerceAccess.Services
 			try
 			{
 				this.GetResponse< BigCommerceItemsCount >( url );
-
 			}
 			catch( WebException )
 			{
@@ -154,8 +153,8 @@ namespace BigCommerceAccess.Services
 
 					this.ResolveHost( customUrl );
 				}
-
-				throw;
+				else
+					throw;
 			}
 		}
 
