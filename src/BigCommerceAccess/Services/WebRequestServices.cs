@@ -153,6 +153,14 @@ namespace BigCommerceAccess.Services
 
 					this.ResolveHost( customUrl );
 				}
+				else if( url.Contains( this._config.CustomHost ) )
+				{
+					var clippedHost = this._config.CustomHost.Replace( "www.", string.Empty );
+					var customUrl = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCount.Command );
+					this._host = clippedHost;
+
+					this.ResolveHost( customUrl );
+				}
 				else
 					throw;
 			}

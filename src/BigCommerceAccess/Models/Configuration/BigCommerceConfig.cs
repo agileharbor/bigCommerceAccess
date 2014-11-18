@@ -17,7 +17,7 @@ namespace BigCommerceAccess.Models.Configuration
 			Condition.Requires( apiKey, "apiKey" ).IsNotNullOrWhiteSpace();
 
 			this.NativeHost = string.Format( "https://{0}.mybigcommerce.com", shopName );
-			this.CustomHost = string.Format( "https://{0}.com", shopName );
+			this.CustomHost = string.Format( "https://www.{0}.com", shopName );
 			this.ShopName = shopName;
 			this.UserName = userName;
 			this.ApiKey = apiKey;
