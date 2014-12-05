@@ -68,15 +68,17 @@ namespace BigCommerceAccess.Services
 		public void PutData( BigCommerceCommand command, string endpoint, string jsonContent )
 		{
 			var request = this.CreateServicePutRequest( command, endpoint, jsonContent );
+			this.LogPutInfo( this._config.ShopName, endpoint, jsonContent );
 			using( var response = ( HttpWebResponse )request.GetResponse() )
-				this.LogUpdateInfo( endpoint, response.StatusCode, jsonContent );
+				this.LogUpdateInfo( this._config.ShopName, endpoint, response.StatusCode, jsonContent );
 		}
 
 		public async Task PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent )
 		{
 			var request = this.CreateServicePutRequest( command, endpoint, jsonContent );
+			this.LogPutInfo( this._config.ShopName, endpoint, jsonContent );
 			using( var response = await request.GetResponseAsync() )
-				this.LogUpdateInfo( endpoint, ( ( HttpWebResponse )response ).StatusCode, jsonContent );
+				this.LogUpdateInfo( this._config.ShopName, endpoint, ( ( HttpWebResponse )response ).StatusCode, jsonContent );
 		}
 
 		#region WebRequest configuration
@@ -166,9 +168,14 @@ namespace BigCommerceAccess.Services
 			}
 		}
 
-		private void LogUpdateInfo( string url, HttpStatusCode statusCode, string jsonContent )
+		private void LogUpdateInfo( string shopName, string url, HttpStatusCode statusCode, string jsonContent )
 		{
-			this.Log().Trace( "[bigcommerce]\tPUT/POST call for the url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+			this.Log().Trace( "[bigcommerce]\tPUT/POST call for shop '{0}' and url '{1}' has been completed with code '{2}'.\n{3}", shopName, url, statusCode, jsonContent );
+		}
+
+		private void LogPutInfo( string shopName, string url, string jsonContent )
+		{
+			this.Log().Trace( "[shipstation]\tPUT data for shop '{0}' and url '{1}':\n{2}", shopName, url, jsonContent );
 		}
 		#endregion
 
