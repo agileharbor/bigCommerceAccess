@@ -175,7 +175,7 @@ namespace BigCommerceAccess.Services
 
 		private void LogPutInfo( string shopName, string url, string jsonContent )
 		{
-			this.Log().Trace( "[shipstation]\tPUT data for shop '{0}' and url '{1}':\n{2}", shopName, url, jsonContent );
+			this.Log().Trace( "[bigcommerce]\tPUT data for shop '{0}' and url '{1}':\n{2}", shopName, url, jsonContent );
 		}
 		#endregion
 
