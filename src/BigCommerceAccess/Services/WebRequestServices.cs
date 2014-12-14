@@ -26,6 +26,26 @@ namespace BigCommerceAccess.Services
 			this.ResolveHost( string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCount.Command ) );
 		}
 
+		public T GetResponse< T >( string url, string commandParams )
+		{
+			T result;
+			var request = this.CreateGetServiceGetRequest( string.Concat( url, commandParams ) );
+			using( var response = request.GetResponse() )
+				result = ParseResponse< T >( response );
+
+			return result;
+		}
+
+		public async Task< T > GetResponseAsync< T >( string url, string commandParams )
+		{
+			T result;
+			var request = this.CreateGetServiceGetRequest( string.Concat( url, commandParams ) );
+			using( var response = await request.GetResponseAsync() )
+				result = ParseResponse< T >( response );
+
+			return result;
+		}
+
 		public T GetResponse< T >( BigCommerceCommand command, string commandParams )
 		{
 			T result;

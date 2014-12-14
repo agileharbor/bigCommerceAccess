@@ -12,7 +12,12 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "skus" ) ]
 		public BigCommerceReferenceObject ProductOptionsReference { get; set; }
 
-		public IList< BigCommerceProductOption > ProductOptions { get; set; }
+		public List< BigCommerceProductOption > ProductOptions { get; set; }
+
+		public BigCommerceProduct()
+		{
+			this.ProductOptions = new List< BigCommerceProductOption >();
+		}
 	}
 
 	public enum InventoryTrackingEnum
