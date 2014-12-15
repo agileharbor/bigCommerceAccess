@@ -146,14 +146,26 @@ namespace BigCommerceAccess
 		{
 			foreach( var order in orders )
 			{
+				var pageNumber = 1;
+				var hasProducts = false;
 				var o = order;
-				ActionPolicies.Get.Do( () =>
-				{
-					o.Products = this._webRequestServices.GetResponse< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
 
-					//API requirement
-					this.CreateApiDelay().Wait();
-				} );
+				do
+				{
+					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( pageNumber++, RequestMaxLimit ) );
+					ActionPolicies.Get.Do( () =>
+					{
+						var products = this._webRequestServices.GetResponse< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url, endpoint );
+
+						if( products != null )
+							o.Products.AddRange( products );
+
+						hasProducts = products != null && products.Count == RequestMaxLimit;
+
+						//API requirement
+						this.CreateApiDelay().Wait();
+					} );
+				} while( hasProducts );
 			}
 		}
 
@@ -161,15 +173,26 @@ namespace BigCommerceAccess
 		{
 			foreach( var order in orders )
 			{
+				var pageNumber = 1;
+				var hasProducts = false;
 				var o = order;
-				await ActionPolicies.GetAsync.Do( async () =>
+
+				do
 				{
-					o.Products = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url );
+					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( pageNumber++, RequestMaxLimit ) );
+					await ActionPolicies.GetAsync.Do( async () =>
+					{
+						var products = await this._webRequestServices.GetResponseAsync< IList< BigCommerceOrderProduct > >( o.ProductsReference.Url, endpoint );
 
-					//API requirement
-					this.CreateApiDelay().Wait();
-				} );
+						if( products != null )
+							o.Products.AddRange( products );
 
+						hasProducts = products != null && products.Count == RequestMaxLimit;
+
+						//API requirement
+						this.CreateApiDelay().Wait();
+					} );
+				} while( hasProducts );
 			}
 		}
 		#endregion
@@ -182,7 +205,7 @@ namespace BigCommerceAccess
 				var o = order;
 				ActionPolicies.Get.Do( () =>
 				{
-					o.ShippingAddresses = this._webRequestServices.GetResponse< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
+					o.ShippingAddresses = this._webRequestServices.GetResponse< List< BigCommerceShippingAddress > >( o.ProductsReference.Url );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
@@ -197,7 +220,7 @@ namespace BigCommerceAccess
 				var o = order;
 				await ActionPolicies.GetAsync.Do( async () =>
 				{
-					o.ShippingAddresses = await this._webRequestServices.GetResponseAsync< IList< BigCommerceShippingAddress > >( o.ProductsReference.Url );
+					o.ShippingAddresses = await this._webRequestServices.GetResponseAsync< List< BigCommerceShippingAddress > >( o.ProductsReference.Url );
 
 					//API requirement
 					this.CreateApiDelay().Wait();

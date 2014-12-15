@@ -32,8 +32,8 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "is_deleted" ) ]
 		public bool IsDeleted { get; set; }
 
-		public IList< BigCommerceOrderProduct > Products { get; set; }
-		public IList< BigCommerceShippingAddress > ShippingAddresses { get; set; }
+		public List< BigCommerceOrderProduct > Products { get; set; }
+		public List< BigCommerceShippingAddress > ShippingAddresses { get; set; }
 
 		public bool IsShipped
 		{
