@@ -147,7 +147,7 @@ namespace BigCommerceAccess
 			foreach( var order in orders )
 			{
 				var pageNumber = 1;
-				var hasProducts = false;
+				var hasMoreProducts = false;
 				var o = order;
 
 				do
@@ -160,12 +160,12 @@ namespace BigCommerceAccess
 						if( products != null )
 							o.Products.AddRange( products );
 
-						hasProducts = products != null && products.Count == RequestMaxLimit;
+						hasMoreProducts = products != null && products.Count == RequestMaxLimit;
 
 						//API requirement
 						this.CreateApiDelay().Wait();
 					} );
-				} while( hasProducts );
+				} while( hasMoreProducts );
 			}
 		}
 
@@ -174,7 +174,7 @@ namespace BigCommerceAccess
 			foreach( var order in orders )
 			{
 				var pageNumber = 1;
-				var hasProducts = false;
+				var hasMoreProducts = false;
 				var o = order;
 
 				do
@@ -187,12 +187,12 @@ namespace BigCommerceAccess
 						if( products != null )
 							o.Products.AddRange( products );
 
-						hasProducts = products != null && products.Count == RequestMaxLimit;
+						hasMoreProducts = products != null && products.Count == RequestMaxLimit;
 
 						//API requirement
 						this.CreateApiDelay().Wait();
 					} );
-				} while( hasProducts );
+				} while( hasMoreProducts );
 			}
 		}
 		#endregion

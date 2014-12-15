@@ -135,7 +135,7 @@ namespace BigCommerceAccess
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
 				var pageNumber = 1;
-				var hasOptions = false;
+				var hasMoreOptions = false;
 				var p = product;
 
 				do
@@ -148,12 +148,12 @@ namespace BigCommerceAccess
 						if( options != null )
 							p.ProductOptions.AddRange( options );
 
-						hasOptions = options != null && options.Count == RequestMaxLimit;
+						hasMoreOptions = options != null && options.Count == RequestMaxLimit;
 
 						//API requirement
 						this.CreateApiDelay().Wait();
 					} );
-				} while( hasOptions );
+				} while( hasMoreOptions );
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace BigCommerceAccess
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
 				var pageNumber = 1;
-				var hasOptions = true;
+				var hasMoreOptions = true;
 				var p = product;
 
 				do
@@ -175,12 +175,12 @@ namespace BigCommerceAccess
 						if( options != null )
 							p.ProductOptions.AddRange( options );
 
-						hasOptions = options != null && options.Count == RequestMaxLimit;
+						hasMoreOptions = options != null && options.Count == RequestMaxLimit;
 
 						//API requirement
 						this.CreateApiDelay().Wait();
 					} );
-				} while( hasOptions );
+				} while( hasMoreOptions );
 			}
 		}
 		#endregion
