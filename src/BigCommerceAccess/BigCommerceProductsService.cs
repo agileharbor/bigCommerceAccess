@@ -148,7 +148,7 @@ namespace BigCommerceAccess
 						if( options != null )
 							p.ProductOptions.AddRange( options );
 
-						hasOptions = options != null && options.Any();
+						hasOptions = options != null && options.Count == RequestMaxLimit;
 
 						//API requirement
 						this.CreateApiDelay().Wait();
@@ -175,7 +175,7 @@ namespace BigCommerceAccess
 						if( options != null )
 							p.ProductOptions.AddRange( options );
 
-						hasOptions = options != null && options.Any();
+						hasOptions = options != null && options.Count == RequestMaxLimit;
 
 						//API requirement
 						this.CreateApiDelay().Wait();
