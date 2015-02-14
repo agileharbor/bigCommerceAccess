@@ -5,10 +5,10 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
-using Netco.Logging;
 using ServiceStack;
 
 namespace BigCommerceAccess.Services
@@ -143,7 +143,7 @@ namespace BigCommerceAccess.Services
 				var reader = new StreamReader( stream );
 				var jsonResponse = reader.ReadToEnd();
 
-				this.Log().Trace( "[bigcommerce]\tResponse\t{0} - {1}", response.ResponseUri, jsonResponse );
+				BigCommerceLogger.Log.Trace( "[bigcommerce]\tResponse\t{0} - {1}", response.ResponseUri, jsonResponse );
 
 				if( !String.IsNullOrEmpty( jsonResponse ) )
 					result = jsonResponse.FromJson< T >();
@@ -190,12 +190,12 @@ namespace BigCommerceAccess.Services
 
 		private void LogUpdateInfo( string shopName, string url, HttpStatusCode statusCode, string jsonContent )
 		{
-			this.Log().Trace( "[bigcommerce]\tPUT/POST call for shop '{0}' and url '{1}' has been completed with code '{2}'.\n{3}", shopName, url, statusCode, jsonContent );
+			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT/POST call for shop '{0}' and url '{1}' has been completed with code '{2}'.\n{3}", shopName, url, statusCode, jsonContent );
 		}
 
 		private void LogPutInfo( string shopName, string url, string jsonContent )
 		{
-			this.Log().Trace( "[bigcommerce]\tPUT data for shop '{0}' and url '{1}':\n{2}", shopName, url, jsonContent );
+			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT data for shop '{0}' and url '{1}':\n{2}", shopName, url, jsonContent );
 		}
 		#endregion
 

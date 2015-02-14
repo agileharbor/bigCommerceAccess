@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Netco.ActionPolicyServices;
-using Netco.Logging;
 using Netco.Utils;
 
 namespace BigCommerceAccess.Misc
@@ -15,7 +14,7 @@ namespace BigCommerceAccess.Misc
 
 		private static readonly ActionPolicy _bigCommerceSumbitPolicy = ActionPolicy.Handle< Exception >().Retry( 10, ( ex, i ) =>
 		{
-			typeof( ActionPolicies ).Log().Trace( ex, "Retrying BigCommerce API submit call for the {0} time", i );
+			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API submit call for the {0} time", i );
 			SystemUtil.Sleep( TimeSpan.FromSeconds( 0.5 + i ) );
 		} );
 
@@ -26,7 +25,7 @@ namespace BigCommerceAccess.Misc
 
 		private static readonly ActionPolicyAsync _bigCommerceSumbitAsyncPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( 10, async ( ex, i ) =>
 		{
-			typeof( ActionPolicies ).Log().Trace( ex, "Retrying BigCommerce API submit call for the {0} time", i );
+			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API submit call for the {0} time", i );
 			await Task.Delay( TimeSpan.FromSeconds( 0.5 + i ) );
 		} );
 
@@ -37,7 +36,7 @@ namespace BigCommerceAccess.Misc
 
 		private static readonly ActionPolicy _bigCommerceGetPolicy = ActionPolicy.Handle< Exception >().Retry( 10, ( ex, i ) =>
 		{
-			typeof( ActionPolicies ).Log().Trace( ex, "Retrying BigCommerce API get call for the {0} time", i );
+			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API get call for the {0} time", i );
 			SystemUtil.Sleep( TimeSpan.FromSeconds( 0.5 + i ) );
 		} );
 
@@ -48,7 +47,7 @@ namespace BigCommerceAccess.Misc
 
 		private static readonly ActionPolicyAsync _bigCommerceGetAsyncPolicy = ActionPolicyAsync.Handle< Exception >().RetryAsync( 10, async ( ex, i ) =>
 		{
-			typeof( ActionPolicies ).Log().Trace( ex, "Retrying BigCommerce API get call for the {0} time", i );
+			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API get call for the {0} time", i );
 			await Task.Delay( TimeSpan.FromSeconds( 0.5 + i ) );
 		} );
 	}
