@@ -63,7 +63,7 @@ namespace BigCommerceAccess
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i + 1, RequestMaxLimit ) );
 
-				ActionPolicies.Submit.Do( () =>
+				ActionPolicies.Get.Do( () =>
 				{
 					var productsWithinPage = this._webRequestServices.GetResponse< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint );
 					products.AddRange( productsWithinPage );
@@ -81,7 +81,7 @@ namespace BigCommerceAccess
 			IList< BigCommerceProduct > products = null;
 			var endpoint = ParamsBuilder.CreateGetSinglePageParams( new BigCommerceCommandConfig( RequestMaxLimit ) );
 
-			ActionPolicies.Submit.Do( () =>
+			ActionPolicies.Get.Do( () =>
 			{
 				products = this._webRequestServices.GetResponse< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint );
 
