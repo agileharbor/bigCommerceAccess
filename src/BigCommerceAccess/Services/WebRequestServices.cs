@@ -28,46 +28,36 @@ namespace BigCommerceAccess.Services
 
 		public T GetResponse< T >( string url, string commandParams )
 		{
-			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( url, commandParams ) );
-			using( var response = request.GetResponse() )
-				result = ParseResponse< T >( response );
-
+			var requestUrl = this.GetUrl( url, commandParams );
+			var result = this.GetResponse< T >( requestUrl );
 			return result;
 		}
 
 		public async Task< T > GetResponseAsync< T >( string url, string commandParams )
 		{
-			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( url, commandParams ) );
-			using( var response = await request.GetResponseAsync() )
-				result = ParseResponse< T >( response );
-
+			var requestUrl = this.GetUrl( url, commandParams );
+			var result = await this.GetResponseAsync< T >( requestUrl );
 			return result;
 		}
 
 		public T GetResponse< T >( BigCommerceCommand command, string commandParams )
 		{
-			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( this._host, command.Command, commandParams ) );
-			using( var response = request.GetResponse() )
-				result = ParseResponse< T >( response );
-
+			var requestUrl = this.GetUrl( command, commandParams );
+			var result = this.GetResponse< T >( requestUrl );
 			return result;
 		}
 
 		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string commandParams )
 		{
-			T result;
-			var request = this.CreateGetServiceGetRequest( string.Concat( this._host, command.Command, commandParams ) );
-			using( var response = await request.GetResponseAsync() )
-				result = ParseResponse< T >( response );
-
+			var requestUrl = this.GetUrl( command, commandParams );
+			var result = await this.GetResponseAsync< T >( requestUrl );
 			return result;
 		}
 
 		public T GetResponse< T >( string url )
 		{
+			this.LogGetInfo( url );
+
 			T result;
 			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = request.GetResponse() )
@@ -77,31 +67,46 @@ namespace BigCommerceAccess.Services
 
 		public async Task< T > GetResponseAsync< T >( string url )
 		{
+			this.LogGetInfo( url );
+
 			T result;
 			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = await request.GetResponseAsync() )
 				result = ParseResponse< T >( response );
-
 			return result;
 		}
 
 		public void PutData( BigCommerceCommand command, string endpoint, string jsonContent )
 		{
-			var request = this.CreateServicePutRequest( command, endpoint, jsonContent );
-			this.LogPutInfo( this._config.ShopName, endpoint, jsonContent );
+			var url = this.GetUrl( command, endpoint );
+			this.LogPutInfo( url, jsonContent );
+
+			var request = this.CreateServicePutRequest( url, jsonContent );
 			using( var response = ( HttpWebResponse )request.GetResponse() )
-				this.LogUpdateInfo( this._config.ShopName, endpoint, response.StatusCode, jsonContent );
+				this.LogPutInfoResult( url, response.StatusCode, jsonContent );
 		}
 
 		public async Task PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent )
 		{
-			var request = this.CreateServicePutRequest( command, endpoint, jsonContent );
-			this.LogPutInfo( this._config.ShopName, endpoint, jsonContent );
+			var url = this.GetUrl( command, endpoint );
+			this.LogPutInfo( url, jsonContent );
+
+			var request = this.CreateServicePutRequest( url, jsonContent );
 			using( var response = await request.GetResponseAsync() )
-				this.LogUpdateInfo( this._config.ShopName, endpoint, ( ( HttpWebResponse )response ).StatusCode, jsonContent );
+				this.LogPutInfoResult( url, ( ( HttpWebResponse )response ).StatusCode, jsonContent );
 		}
 
 		#region WebRequest configuration
+		private string GetUrl( string url, string commandParams )
+		{
+			return string.Concat( url, commandParams );
+		}
+
+		private string GetUrl( BigCommerceCommand command, string commandParams )
+		{
+			return string.Concat( this._host, command.Command, commandParams );
+		}
+
 		private HttpWebRequest CreateGetServiceGetRequest( string url )
 		{
 			this.AllowInvalidCertificate();
@@ -115,11 +120,11 @@ namespace BigCommerceAccess.Services
 			return request;
 		}
 
-		private HttpWebRequest CreateServicePutRequest( BigCommerceCommand command, string endpoint, string content )
+		private HttpWebRequest CreateServicePutRequest( string url, string content )
 		{
 			this.AllowInvalidCertificate();
 
-			var uri = new Uri( string.Concat( this._host, command.Command, endpoint ) );
+			var uri = new Uri( url );
 			var request = ( HttpWebRequest )WebRequest.Create( uri );
 
 			request.Method = WebRequestMethods.Http.Put;
@@ -143,7 +148,7 @@ namespace BigCommerceAccess.Services
 				var reader = new StreamReader( stream );
 				var jsonResponse = reader.ReadToEnd();
 
-				BigCommerceLogger.Log.Trace( "[bigcommerce]\tResponse\t{0} - {1}", response.ResponseUri, jsonResponse );
+				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse );
 
 				if( !String.IsNullOrEmpty( jsonResponse ) )
 					result = jsonResponse.FromJson< T >();
@@ -188,14 +193,24 @@ namespace BigCommerceAccess.Services
 			}
 		}
 
-		private void LogUpdateInfo( string shopName, string url, HttpStatusCode statusCode, string jsonContent )
+		private void LogGetInfo( string url )
 		{
-			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT/POST call for shop '{0}' and url '{1}' has been completed with code '{2}'.\n{3}", shopName, url, statusCode, jsonContent );
+			BigCommerceLogger.Log.Trace( "[bigcommerce]\tGET data for url '{0}'", url );
 		}
 
-		private void LogPutInfo( string shopName, string url, string jsonContent )
+		private void LogGetInfoResult( string url, HttpStatusCode statusCode, string jsonContent )
 		{
-			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT data for shop '{0}' and url '{1}':\n{2}", shopName, url, jsonContent );
+			BigCommerceLogger.Log.Trace( "[bigcommerce]\tGET call for url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+		}
+
+		private void LogPutInfo( string url, string jsonContent )
+		{
+			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT data for url '{0}':\n{1}", url, jsonContent );
+		}
+
+		private void LogPutInfoResult( string url, HttpStatusCode statusCode, string jsonContent )
+		{
+			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT/POST call for url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
 		}
 		#endregion
 

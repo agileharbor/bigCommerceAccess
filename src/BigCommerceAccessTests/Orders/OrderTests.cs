@@ -8,6 +8,7 @@ using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Order;
 using FluentAssertions;
 using LINQtoCSV;
+using Netco.Logging;
 using NUnit.Framework;
 
 namespace BigCommerceAccessTests.Orders
@@ -20,10 +21,11 @@ namespace BigCommerceAccessTests.Orders
 		[ SetUp ]
 		public void Init()
 		{
+			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
 			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
 			var cc = new CsvContext();
-			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true } ).FirstOrDefault();
+			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
 
 			if( testConfig != null )
 				this.Config = new BigCommerceConfig( testConfig.ShopName, testConfig.UserName, testConfig.ApiKey );
