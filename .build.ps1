@@ -87,8 +87,8 @@ task NuGet Package, Version, {
 		<tags>$project_short_name</tags>
 		<dependencies> 
 			<group targetFramework="net45">
-				<dependency id="Netco" version="1.3.1" />
-				<dependency id="ServiceStack.Text" version="4.0.5" />
+				<dependency id="Netco" version="1.5.1" />
+				<dependency id="ServiceStack.Text" version="4.0.40" />
 				<dependency id="CuttingEdge.Conditions" version="1.2.0.0" />
 			</group>
 		</dependencies>
