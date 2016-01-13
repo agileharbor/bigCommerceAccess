@@ -83,6 +83,5 @@ namespace BigCommerceAccessTests.Products
 			var productToUpdate = new BigCommerceProductOption { ProductId = 75, Id = 4, Quantity = "6" };
 			await service.UpdateProductOptionsAsync( new List< BigCommerceProductOption > { productToUpdate } );
 		}
-
 	}
 }

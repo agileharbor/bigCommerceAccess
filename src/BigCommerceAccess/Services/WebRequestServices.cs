@@ -16,14 +16,12 @@ namespace BigCommerceAccess.Services
 	internal class WebRequestServices
 	{
 		private readonly BigCommerceConfig _config;
-		private string _host;
+		private readonly string _host;
 
 		public WebRequestServices( BigCommerceConfig config )
 		{
 			this._config = config;
-			this._host = config.NativeHost;
-
-			this.ResolveHost( string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCount.Command ) );
+			this._host = this.ResolveHost( config );
 		}
 
 		public T GetResponse< T >( string url, string commandParams )
@@ -61,7 +59,7 @@ namespace BigCommerceAccess.Services
 			T result;
 			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = request.GetResponse() )
-				result = ParseResponse< T >( response );
+				result = this.ParseResponse< T >( response );
 			return result;
 		}
 
@@ -72,7 +70,7 @@ namespace BigCommerceAccess.Services
 			T result;
 			var request = this.CreateGetServiceGetRequest( url );
 			using( var response = await request.GetResponseAsync() )
-				result = ParseResponse< T >( response );
+				result = this.ParseResponse< T >( response );
 			return result;
 		}
 
@@ -141,7 +139,7 @@ namespace BigCommerceAccess.Services
 		#region Misc
 		private T ParseResponse< T >( WebResponse response )
 		{
-			var result = default( T );
+			var result = default(T);
 
 			using( var stream = response.GetResponseStream() )
 			{
@@ -150,7 +148,7 @@ namespace BigCommerceAccess.Services
 
 				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse );
 
-				if( !String.IsNullOrEmpty( jsonResponse ) )
+				if( !string.IsNullOrEmpty( jsonResponse ) )
 					result = jsonResponse.FromJson< T >();
 			}
 
@@ -165,31 +163,29 @@ namespace BigCommerceAccess.Services
 			return string.Concat( "Basic ", authInfo );
 		}
 
-		private void ResolveHost( string url )
+		private string ResolveHost( BigCommerceConfig config )
 		{
 			try
 			{
+				var url = string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCount.Command );
 				this.GetResponse< BigCommerceItemsCount >( url );
+				return config.NativeHost;
 			}
 			catch( WebException )
 			{
-				if( url.Contains( this._config.NativeHost ) )
+				try
 				{
-					var customUrl = string.Concat( this._config.CustomHost, BigCommerceCommand.GetOrdersCount.Command );
-					this._host = this._config.CustomHost;
-
-					this.ResolveHost( customUrl );
+					var url = string.Concat( config.CustomHost, BigCommerceCommand.GetOrdersCount.Command );
+					this.GetResponse< BigCommerceItemsCount >( url );
+					return config.CustomHost;
 				}
-				else if( url.Contains( this._config.CustomHost ) )
+				catch( WebException )
 				{
-					var clippedHost = this._config.CustomHost.Replace( "www.", string.Empty );
-					var customUrl = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCount.Command );
-					this._host = clippedHost;
-
-					this.ResolveHost( customUrl );
+					var clippedHost = config.CustomHost.Replace( "www.", string.Empty );
+					var url = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCount.Command );
+					this.GetResponse< BigCommerceItemsCount >( url );
+					return clippedHost;
 				}
-				else
-					throw;
 			}
 		}
 

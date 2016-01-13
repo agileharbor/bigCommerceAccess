@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
-using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
@@ -12,7 +11,7 @@ using ServiceStack;
 
 namespace BigCommerceAccess
 {
-	public class BigCommerceProductsService : BigCommerceServiceBase, IBigCommerceProductsService
+	public class BigCommerceProductsService: BigCommerceServiceBase, IBigCommerceProductsService
 	{
 		private readonly WebRequestServices _webRequestServices;
 
@@ -26,14 +25,7 @@ namespace BigCommerceAccess
 		#region Get
 		public IEnumerable< BigCommerceProduct > GetProducts()
 		{
-			IList< BigCommerceProduct > products;
-			var productsCount = this.GetProductsCount();
-
-			if( productsCount > RequestMaxLimit )
-				products = this.CollectProductsFromAllPages( productsCount );
-			else
-				products = this.CollectProductsFromSinglePage();
-
+			var products = this.CollectProductsFromAllPages();
 			this.FillProductsSkus( products );
 
 			return products;
@@ -41,91 +33,50 @@ namespace BigCommerceAccess
 
 		public async Task< IEnumerable< BigCommerceProduct > > GetProductsAsync()
 		{
-			IList< BigCommerceProduct > products;
-			var productsCount = await this.GetProductsCountAsync();
-
-			if( productsCount > RequestMaxLimit )
-				products = await this.CollectProductsFromAllPagesAsync( productsCount );
-			else
-				products = await this.CollectProductsFromSinglePageAsync();
-
+			var products = await this.CollectProductsFromAllPagesAsync();
 			await this.FillProductsSkusAsync( products );
 
 			return products;
 		}
 
-		private IList< BigCommerceProduct > CollectProductsFromAllPages( int productsCount )
+		private IList< BigCommerceProduct > CollectProductsFromAllPages()
 		{
-			var pagesCount = this.CalculatePagesCount( productsCount );
 			var products = new List< BigCommerceProduct >();
 
-			for( var i = 0; i < pagesCount; i++ )
+			for( var i = 1; i < int.MaxValue; i++ )
 			{
-				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i + 1, RequestMaxLimit ) );
+				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+				var productsWithinPage = ActionPolicies.Get.Get( () =>
+					this._webRequestServices.GetResponse< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
+				this.CreateApiDelay().Wait(); //API requirement
 
-				ActionPolicies.Get.Do( () =>
-				{
-					var productsWithinPage = this._webRequestServices.GetResponse< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint );
-					products.AddRange( productsWithinPage );
-
-					//API requirement
-					this.CreateApiDelay().Wait();
-				} );
+				if( productsWithinPage == null )
+					break;
+				products.AddRange( productsWithinPage );
+				if( productsWithinPage.Count < RequestMaxLimit )
+					break;
 			}
 
 			return products;
 		}
 
-		private IList< BigCommerceProduct > CollectProductsFromSinglePage()
+		private async Task< IList< BigCommerceProduct > > CollectProductsFromAllPagesAsync()
 		{
-			IList< BigCommerceProduct > products = null;
-			var endpoint = ParamsBuilder.CreateGetSinglePageParams( new BigCommerceCommandConfig( RequestMaxLimit ) );
-
-			ActionPolicies.Get.Do( () =>
-			{
-				products = this._webRequestServices.GetResponse< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint );
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-
-			return products;
-		}
-
-		private async Task< IList< BigCommerceProduct > > CollectProductsFromAllPagesAsync( int productsCount )
-		{
-			var pagesCount = this.CalculatePagesCount( productsCount );
 			var products = new List< BigCommerceProduct >();
 
-			for( var i = 0; i < pagesCount; i++ )
+			for( var i = 1; i < int.MaxValue; i++ )
 			{
-				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i + 1, RequestMaxLimit ) );
+				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
+					await this._webRequestServices.GetResponseAsync< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
+				this.CreateApiDelay().Wait(); //API requirement
 
-				await ActionPolicies.GetAsync.Do( async () =>
-				{
-					var productsWithinPage = await this._webRequestServices.GetResponseAsync< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint );
-					products.AddRange( productsWithinPage );
-
-					//API requirement
-					this.CreateApiDelay().Wait();
-				} );
+				if( productsWithinPage == null )
+					break;
+				products.AddRange( productsWithinPage );
+				if( productsWithinPage.Count < RequestMaxLimit )
+					break;
 			}
-
-			return products;
-		}
-
-		private async Task< IList< BigCommerceProduct > > CollectProductsFromSinglePageAsync()
-		{
-			IList< BigCommerceProduct > products = null;
-			var endpoint = ParamsBuilder.CreateGetSinglePageParams( new BigCommerceCommandConfig( RequestMaxLimit ) );
-
-			await ActionPolicies.GetAsync.Do( async () =>
-			{
-				products = await this._webRequestServices.GetResponseAsync< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint );
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
 
 			return products;
 		}
@@ -134,26 +85,19 @@ namespace BigCommerceAccess
 		{
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
-				var pageNumber = 1;
-				var hasMoreOptions = false;
-				var p = product;
-
-				do
+				for( var i = 1; i < int.MaxValue; i++ )
 				{
-					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( pageNumber++, RequestMaxLimit ) );
-					ActionPolicies.Get.Do( () =>
-					{
-						var options = this._webRequestServices.GetResponse< IList< BigCommerceProductOption > >( p.ProductOptionsReference.Url, endpoint );
+					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+					var options = ActionPolicies.Get.Get( () =>
+						this._webRequestServices.GetResponse< IList< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
+					this.CreateApiDelay().Wait(); //API requirement
 
-						if( options != null )
-							p.ProductOptions.AddRange( options );
-
-						hasMoreOptions = options != null && options.Count == RequestMaxLimit;
-
-						//API requirement
-						this.CreateApiDelay().Wait();
-					} );
-				} while( hasMoreOptions );
+					if( options == null )
+						break;
+					product.ProductOptions.AddRange( options );
+					if( options.Count < RequestMaxLimit )
+						break;
+				}
 			}
 		}
 
@@ -161,26 +105,19 @@ namespace BigCommerceAccess
 		{
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
-				var pageNumber = 1;
-				var hasMoreOptions = true;
-				var p = product;
-
-				do
+				for( var i = 1; i < int.MaxValue; i++ )
 				{
-					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( pageNumber++, RequestMaxLimit ) );
-					await ActionPolicies.GetAsync.Do( async () =>
-					{
-						var options = await this._webRequestServices.GetResponseAsync< IList< BigCommerceProductOption > >( p.ProductOptionsReference.Url, endpoint );
+					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+					var options = await ActionPolicies.GetAsync.Get( async () =>
+						await this._webRequestServices.GetResponseAsync< IList< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
+					this.CreateApiDelay().Wait(); //API requirement
 
-						if( options != null )
-							p.ProductOptions.AddRange( options );
-
-						hasMoreOptions = options != null && options.Count == RequestMaxLimit;
-
-						//API requirement
-						this.CreateApiDelay().Wait();
-					} );
-				} while( hasMoreOptions );
+					if( options == null )
+						break;
+					product.ProductOptions.AddRange( options );
+					if( options.Count < RequestMaxLimit )
+						break;
+				}
 			}
 		}
 		#endregion
@@ -189,108 +126,68 @@ namespace BigCommerceAccess
 		public void UpdateProducts( IEnumerable< BigCommerceProduct > products )
 		{
 			foreach( var product in products )
-				this.UpdateProductQuantity( product );
+			{
+				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
+				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
+
+				ActionPolicies.Submit.Do( () =>
+				{
+					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
 		}
 
 		public async Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products )
 		{
 			foreach( var product in products )
-				await this.UpdateProductQuantityAsync( product );
+			{
+				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
+				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
+
+				await ActionPolicies.SubmitAsync.Do( async () =>
+				{
+					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
 		}
 
 		public void UpdateProductOptions( IEnumerable< BigCommerceProductOption > productOptions )
 		{
 			foreach( var option in productOptions )
-				this.UpdateProductOptionQuantity( option );
+			{
+				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
+				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
+
+				ActionPolicies.Submit.Do( () =>
+				{
+					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
 		}
 
 		public async Task UpdateProductOptionsAsync( IEnumerable< BigCommerceProductOption > productOptions )
 		{
 			foreach( var option in productOptions )
-				await this.UpdateProductOptionQuantityAsync( option );
-		}
-
-		private void UpdateProductQuantity( BigCommerceProduct product )
-		{
-			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
-			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
-
-			ActionPolicies.Submit.Do( () =>
 			{
-				this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
+				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
 
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-		}
+				await ActionPolicies.SubmitAsync.Do( async () =>
+				{
+					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
 
-		private async Task UpdateProductQuantityAsync( BigCommerceProduct product )
-		{
-			var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
-			var jsonContent = new { inventory_level = product.Quantity }.ToJson();
-
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
-				await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-		}
-
-		private void UpdateProductOptionQuantity( BigCommerceProductOption productOption )
-		{
-			var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( productOption.ProductId, productOption.Id );
-			var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
-
-			ActionPolicies.Submit.Do( () =>
-			{
-				this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-		}
-
-		private async Task UpdateProductOptionQuantityAsync( BigCommerceProductOption productOption )
-		{
-			var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( productOption.ProductId, productOption.Id );
-			var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
-
-			await ActionPolicies.SubmitAsync.Do( async () =>
-			{
-				await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-		}
-		#endregion
-
-		#region Count
-		private int GetProductsCount()
-		{
-			var count = 0;
-			ActionPolicies.Get.Do( () =>
-			{
-				count = this._webRequestServices.GetResponse< BigCommerceItemsCount >( BigCommerceCommand.GetProductsCount, ParamsBuilder.EmptyParams ).Count;
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-			return count;
-		}
-
-		private async Task< int > GetProductsCountAsync()
-		{
-			var count = 0;
-			await ActionPolicies.GetAsync.Do( async () =>
-			{
-				count = ( await this._webRequestServices.GetResponseAsync< BigCommerceItemsCount >( BigCommerceCommand.GetProductsCount, ParamsBuilder.EmptyParams ) ).Count;
-
-				//API requirement
-				this.CreateApiDelay().Wait();
-			} );
-			return count;
+					//API requirement
+					this.CreateApiDelay().Wait();
+				} );
+			}
 		}
 		#endregion
 	}
