@@ -6,34 +6,51 @@ using BigCommerceAccess.Models.Address;
 namespace BigCommerceAccess.Models.Order
 {
 	[ DataContract ]
-	public class BigCommerceOrder : BigCommerceObjectBase
+	public class BigCommerceOrder: BigCommerceObjectBase
 	{
 		[ DataMember( Name = "status_id" ) ]
-		public int StatusId { get; set; }
+		public int StatusId{ get; set; }
 
 		[ DataMember( Name = "date_created" ) ]
-		public DateTime DateCreated { get; set; }
+		public DateTime DateCreated{ get; set; }
 
 		[ DataMember( Name = "date_shipped" ) ]
-		public DateTime DateShipped { get; set; }
+		public DateTime DateShipped{ get; set; }
 
 		[ DataMember( Name = "products" ) ]
-		public BigCommerceReferenceObject ProductsReference { get; set; }
+		public BigCommerceReferenceObject ProductsReference{ get; set; }
 
 		[ DataMember( Name = "shipping_addresses" ) ]
-		public BigCommerceReferenceObject ShippingAddressesReference { get; set; }
+		public BigCommerceReferenceObject ShippingAddressesReference{ get; set; }
 
 		[ DataMember( Name = "billing_address" ) ]
-		public BigCommerceBillingAddress BillingAddress { get; set; }
+		public BigCommerceBillingAddress BillingAddress{ get; set; }
 
 		[ DataMember( Name = "total_inc_tax" ) ]
-		public string Total { get; set; }
+		public string Total{ get; set; }
 
 		[ DataMember( Name = "is_deleted" ) ]
-		public bool IsDeleted { get; set; }
+		public bool IsDeleted{ get; set; }
 
-		public List< BigCommerceOrderProduct > Products { get; set; }
-		public List< BigCommerceShippingAddress > ShippingAddresses { get; set; }
+		public List< BigCommerceOrderProduct > Products
+		{
+			get { return this._products; }
+			set
+			{
+				if( value != null )
+					this._products = value;
+			}
+		}
+
+		public List< BigCommerceShippingAddress > ShippingAddresses
+		{
+			get { return this._shippingAddresses; }
+			set
+			{
+				if( value != null )
+					this._shippingAddresses = value;
+			}
+		}
 
 		public bool IsShipped
 		{
@@ -45,10 +62,13 @@ namespace BigCommerceAccess.Models.Order
 			get { return ( BigCommerceOrderStatusEnum )this.StatusId; }
 		}
 
+		private List< BigCommerceOrderProduct > _products;
+		private List< BigCommerceShippingAddress > _shippingAddresses;
+
 		public BigCommerceOrder()
 		{
-			this.Products = new List< BigCommerceOrderProduct >();
-			this.ShippingAddresses = new List< BigCommerceShippingAddress >();
+			this._products = new List< BigCommerceOrderProduct >();
+			this._shippingAddresses = new List< BigCommerceShippingAddress >();
 		}
 	}
 
