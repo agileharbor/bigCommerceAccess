@@ -23,23 +23,7 @@ namespace BigCommerceAccess
 		}
 
 		#region Get
-		public IEnumerable< BigCommerceProduct > GetProducts()
-		{
-			var products = this.CollectProductsFromAllPages();
-			this.FillProductsSkus( products );
-
-			return products;
-		}
-
-		public async Task< IEnumerable< BigCommerceProduct > > GetProductsAsync()
-		{
-			var products = await this.CollectProductsFromAllPagesAsync();
-			await this.FillProductsSkusAsync( products );
-
-			return products;
-		}
-
-		private IList< BigCommerceProduct > CollectProductsFromAllPages()
+		public List< BigCommerceProduct > GetProducts()
 		{
 			var products = new List< BigCommerceProduct >();
 
@@ -47,11 +31,13 @@ namespace BigCommerceAccess
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
+					this._webRequestServices.GetResponse< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
 				this.CreateApiDelay().Wait(); //API requirement
 
 				if( productsWithinPage == null )
 					break;
+
+				this.FillProductsSkus( productsWithinPage );
 				products.AddRange( productsWithinPage );
 				if( productsWithinPage.Count < RequestMaxLimit )
 					break;
@@ -60,7 +46,7 @@ namespace BigCommerceAccess
 			return products;
 		}
 
-		private async Task< IList< BigCommerceProduct > > CollectProductsFromAllPagesAsync()
+		public async Task< List< BigCommerceProduct > > GetProductsAsync()
 		{
 			var products = new List< BigCommerceProduct >();
 
@@ -68,11 +54,13 @@ namespace BigCommerceAccess
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< IList< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
-				this.CreateApiDelay().Wait(); //API requirement
+					await this._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
+				await this.CreateApiDelay(); //API requirement
 
 				if( productsWithinPage == null )
 					break;
+
+				await this.FillProductsSkusAsync( productsWithinPage );
 				products.AddRange( productsWithinPage );
 				if( productsWithinPage.Count < RequestMaxLimit )
 					break;
@@ -89,7 +77,7 @@ namespace BigCommerceAccess
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = ActionPolicies.Get.Get( () =>
-						this._webRequestServices.GetResponse< IList< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
+						this._webRequestServices.GetResponse< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
 					this.CreateApiDelay().Wait(); //API requirement
 
 					if( options == null )
@@ -109,8 +97,8 @@ namespace BigCommerceAccess
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = await ActionPolicies.GetAsync.Get( async () =>
-						await this._webRequestServices.GetResponseAsync< IList< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
-					this.CreateApiDelay().Wait(); //API requirement
+						await this._webRequestServices.GetResponseAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
+					await this.CreateApiDelay(); //API requirement
 
 					if( options == null )
 						break;
@@ -123,7 +111,7 @@ namespace BigCommerceAccess
 		#endregion
 
 		#region Update
-		public void UpdateProducts( IEnumerable< BigCommerceProduct > products )
+		public void UpdateProducts( List< BigCommerceProduct > products )
 		{
 			foreach( var product in products )
 			{
@@ -140,7 +128,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		public async Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products )
+		public async Task UpdateProductsAsync( List< BigCommerceProduct > products )
 		{
 			foreach( var product in products )
 			{
@@ -150,13 +138,14 @@ namespace BigCommerceAccess
 				await ActionPolicies.SubmitAsync.Do( async () =>
 				{
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+
 					//API requirement
-					this.CreateApiDelay().Wait();
+					await this.CreateApiDelay();
 				} );
 			}
 		}
 
-		public void UpdateProductOptions( IEnumerable< BigCommerceProductOption > productOptions )
+		public void UpdateProductOptions( List< BigCommerceProductOption > productOptions )
 		{
 			foreach( var option in productOptions )
 			{
@@ -173,7 +162,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		public async Task UpdateProductOptionsAsync( IEnumerable< BigCommerceProductOption > productOptions )
+		public async Task UpdateProductOptionsAsync( List< BigCommerceProductOption > productOptions )
 		{
 			foreach( var option in productOptions )
 			{
@@ -185,7 +174,7 @@ namespace BigCommerceAccess
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
 
 					//API requirement
-					this.CreateApiDelay().Wait();
+					await this.CreateApiDelay();
 				} );
 			}
 		}

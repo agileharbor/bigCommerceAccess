@@ -6,14 +6,13 @@ namespace BigCommerceAccess
 {
 	public interface IBigCommerceProductsService
 	{
-		IEnumerable< BigCommerceProduct > GetProducts();
-		Task< IEnumerable< BigCommerceProduct > > GetProductsAsync();
+		List< BigCommerceProduct > GetProducts();
+		Task< List< BigCommerceProduct > > GetProductsAsync();
 
-		void UpdateProducts( IEnumerable< BigCommerceProduct > products );
-		Task UpdateProductsAsync( IEnumerable< BigCommerceProduct > products );
+		void UpdateProducts( List< BigCommerceProduct > products );
+		Task UpdateProductsAsync( List< BigCommerceProduct > products );
 
-		void UpdateProductOptions( IEnumerable< BigCommerceProductOption > productOptions );
-
-		Task UpdateProductOptionsAsync( IEnumerable< BigCommerceProductOption > productOptions );
+		void UpdateProductOptions( List< BigCommerceProductOption > productOptions );
+		Task UpdateProductOptionsAsync( List< BigCommerceProductOption > productOptions );
 	}
 }
