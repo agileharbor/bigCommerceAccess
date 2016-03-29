@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess;
 using BigCommerceAccess.Models.Configuration;
@@ -43,7 +44,7 @@ namespace BigCommerceAccessTests.Products
 		public async Task GetProductsAsync()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
-			var products = await service.GetProductsAsync();
+			var products = await service.GetProductsAsync( CancellationToken.None );
 
 			products.Count().Should().BeGreaterThan( 0 );
 		}
@@ -63,7 +64,7 @@ namespace BigCommerceAccessTests.Products
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
 
 			var productToUpdate = new BigCommerceProduct { Id = 74, Quantity = "6" };
-			await service.UpdateProductsAsync( new List< BigCommerceProduct > { productToUpdate } );
+			await service.UpdateProductsAsync( new List< BigCommerceProduct > { productToUpdate }, CancellationToken.None );
 		}
 
 		[ Test ]
@@ -81,7 +82,7 @@ namespace BigCommerceAccessTests.Products
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
 
 			var productToUpdate = new BigCommerceProductOption { ProductId = 75, Id = 4, Quantity = "6" };
-			await service.UpdateProductOptionsAsync( new List< BigCommerceProductOption > { productToUpdate } );
+			await service.UpdateProductOptionsAsync( new List< BigCommerceProductOption > { productToUpdate }, CancellationToken.None );
 		}
 	}
 }

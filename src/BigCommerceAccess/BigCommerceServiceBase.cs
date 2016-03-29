@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BigCommerceAccess
@@ -14,6 +15,11 @@ namespace BigCommerceAccess
 		protected Task CreateApiDelay()
 		{
 			return Task.Delay( this.DefaultApiDelay );
+		}
+
+		protected Task CreateApiDelay( CancellationToken token )
+		{
+			return Task.Delay( this.DefaultApiDelay, token );
 		}
 
 		protected int CalculatePagesCount( int itemsCount )

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models.Command;
@@ -46,7 +47,7 @@ namespace BigCommerceAccess
 			return products;
 		}
 
-		public async Task< List< BigCommerceProduct > > GetProductsAsync()
+		public async Task< List< BigCommerceProduct > > GetProductsAsync( CancellationToken token )
 		{
 			var products = new List< BigCommerceProduct >();
 
@@ -55,12 +56,12 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
-				await this.CreateApiDelay(); //API requirement
+				await this.CreateApiDelay( token ); //API requirement
 
 				if( productsWithinPage == null )
 					break;
 
-				await this.FillProductsSkusAsync( productsWithinPage );
+				await this.FillProductsSkusAsync( productsWithinPage, token );
 				products.AddRange( productsWithinPage );
 				if( productsWithinPage.Count < RequestMaxLimit )
 					break;
@@ -89,7 +90,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products )
+		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token )
 		{
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
@@ -98,7 +99,7 @@ namespace BigCommerceAccess
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = await ActionPolicies.GetAsync.Get( async () =>
 						await this._webRequestServices.GetResponseAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
-					await this.CreateApiDelay(); //API requirement
+					await this.CreateApiDelay( token ); //API requirement
 
 					if( options == null )
 						break;
@@ -128,7 +129,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		public async Task UpdateProductsAsync( List< BigCommerceProduct > products )
+		public async Task UpdateProductsAsync( List< BigCommerceProduct > products, CancellationToken token )
 		{
 			foreach( var product in products )
 			{
@@ -140,7 +141,7 @@ namespace BigCommerceAccess
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
 
 					//API requirement
-					await this.CreateApiDelay();
+					await this.CreateApiDelay( token );
 				} );
 			}
 		}
@@ -162,7 +163,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		public async Task UpdateProductOptionsAsync( List< BigCommerceProductOption > productOptions )
+		public async Task UpdateProductOptionsAsync( List< BigCommerceProductOption > productOptions, CancellationToken token )
 		{
 			foreach( var option in productOptions )
 			{
@@ -174,7 +175,7 @@ namespace BigCommerceAccess
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
 
 					//API requirement
-					await this.CreateApiDelay();
+					await this.CreateApiDelay( token );
 				} );
 			}
 		}

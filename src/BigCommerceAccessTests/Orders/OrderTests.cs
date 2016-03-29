@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess;
 using BigCommerceAccess.Models.Configuration;
@@ -44,7 +45,7 @@ namespace BigCommerceAccessTests.Orders
 		public async Task GetOrdersAsync()
 		{
 			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
-			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddHours( -1 ), DateTime.UtcNow );
+			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddHours( -1 ), DateTime.UtcNow, CancellationToken.None );
 
 			orders.Count().Should().BeGreaterThan( 0 );
 		}
