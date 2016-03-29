@@ -56,22 +56,36 @@ namespace BigCommerceAccess.Services
 		{
 			this.LogGetInfo( url );
 
-			T result;
-			var request = this.CreateGetServiceGetRequest( url );
-			using( var response = request.GetResponse() )
-				result = this.ParseResponse< T >( response );
-			return result;
+			try
+			{
+				T result;
+				var request = this.CreateGetServiceGetRequest( url );
+				using( var response = request.GetResponse() )
+					result = this.ParseResponse< T >( response );
+				return result;
+			}
+			catch( Exception ex )
+			{
+				throw this.ExceptionForGetInfo( url, ex );
+			}
 		}
 
 		public async Task< T > GetResponseAsync< T >( string url )
 		{
 			this.LogGetInfo( url );
 
-			T result;
-			var request = this.CreateGetServiceGetRequest( url );
-			using( var response = await request.GetResponseAsync() )
-				result = this.ParseResponse< T >( response );
-			return result;
+			try
+			{
+				T result;
+				var request = this.CreateGetServiceGetRequest( url );
+				using( var response = await request.GetResponseAsync() )
+					result = this.ParseResponse< T >( response );
+				return result;
+			}
+			catch( Exception ex )
+			{
+				throw this.ExceptionForGetInfo( url, ex );
+			}
 		}
 
 		public void PutData( BigCommerceCommand command, string endpoint, string jsonContent )
@@ -79,9 +93,16 @@ namespace BigCommerceAccess.Services
 			var url = this.GetUrl( command, endpoint );
 			this.LogPutInfo( url, jsonContent );
 
-			var request = this.CreateServicePutRequest( url, jsonContent );
-			using( var response = ( HttpWebResponse )request.GetResponse() )
-				this.LogPutInfoResult( url, response.StatusCode, jsonContent );
+			try
+			{
+				var request = this.CreateServicePutRequest( url, jsonContent );
+				using( var response = ( HttpWebResponse )request.GetResponse() )
+					this.LogPutInfoResult( url, response.StatusCode, jsonContent );
+			}
+			catch( Exception ex )
+			{
+				throw this.ExceptionForPutInfo( url, ex );
+			}
 		}
 
 		public async Task PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent )
@@ -89,9 +110,16 @@ namespace BigCommerceAccess.Services
 			var url = this.GetUrl( command, endpoint );
 			this.LogPutInfo( url, jsonContent );
 
-			var request = this.CreateServicePutRequest( url, jsonContent );
-			using( var response = await request.GetResponseAsync() )
-				this.LogPutInfoResult( url, ( ( HttpWebResponse )response ).StatusCode, jsonContent );
+			try
+			{
+				var request = this.CreateServicePutRequest( url, jsonContent );
+				using( var response = await request.GetResponseAsync() )
+					this.LogPutInfoResult( url, ( ( HttpWebResponse )response ).StatusCode, jsonContent );
+			}
+			catch( Exception ex )
+			{
+				throw this.ExceptionForPutInfo( url, ex );
+			}
 		}
 
 		#region WebRequest configuration
@@ -142,8 +170,8 @@ namespace BigCommerceAccess.Services
 			var result = default(T);
 
 			using( var stream = response.GetResponseStream() )
+			using( var reader = new StreamReader( stream ) )
 			{
-				var reader = new StreamReader( stream );
 				var jsonResponse = reader.ReadToEnd();
 
 				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse );
@@ -191,29 +219,39 @@ namespace BigCommerceAccess.Services
 
 		private void LogGetInfo( string url )
 		{
-			BigCommerceLogger.Log.Trace( "[bigcommerce]\tGET data for url '{0}'", url );
+			BigCommerceLogger.Log.Trace( "GET call for url '{0}'", url );
 		}
 
 		private void LogGetInfoResult( string url, HttpStatusCode statusCode, string jsonContent )
 		{
-			BigCommerceLogger.Log.Trace( "[bigcommerce]\tGET call for url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+			BigCommerceLogger.Log.Trace( "GET call for url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+		}
+
+		private Exception ExceptionForGetInfo( string url, Exception ex )
+		{
+			return new Exception( string.Format( "GET call for url '{0}' failed", url ), ex );
 		}
 
 		private void LogPutInfo( string url, string jsonContent )
 		{
-			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT data for url '{0}':\n{1}", url, jsonContent );
+			BigCommerceLogger.Log.Trace( "PUT/POST data for url '{0}':\n{1}", url, jsonContent );
 		}
 
 		private void LogPutInfoResult( string url, HttpStatusCode statusCode, string jsonContent )
 		{
-			BigCommerceLogger.Log.Trace( "[bigcommerce]\tPUT/POST call for url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+			BigCommerceLogger.Log.Trace( "PUT/POST data for url '{0}' has been completed with code '{1}'.\n{2}", url, statusCode, jsonContent );
+		}
+
+		private Exception ExceptionForPutInfo( string url, Exception ex )
+		{
+			return new Exception( string.Format( "PUT/POST data for url '{0}' failed", url ), ex );
 		}
 		#endregion
 
 		#region SSL certificate hack
 		private void AllowInvalidCertificate()
 		{
-			ServicePointManager.ServerCertificateValidationCallback += AllowCert;
+			ServicePointManager.ServerCertificateValidationCallback += this.AllowCert;
 		}
 
 		private bool AllowCert( object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error )
