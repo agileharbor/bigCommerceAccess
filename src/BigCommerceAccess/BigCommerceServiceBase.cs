@@ -27,5 +27,11 @@ namespace BigCommerceAccess
 			var result = ( int )Math.Ceiling( ( double )itemsCount / RequestMaxLimit );
 			return result;
 		}
+
+		protected string GetMarker()
+		{
+			var marker = Guid.NewGuid().ToString();
+			return marker;
+		}
 	}
 }

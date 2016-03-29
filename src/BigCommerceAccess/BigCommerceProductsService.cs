@@ -20,25 +20,26 @@ namespace BigCommerceAccess
 		{
 			Condition.Requires( config, "config" ).IsNotNull();
 
-			this._webRequestServices = new WebRequestServices( config );
+			this._webRequestServices = new WebRequestServices( config, this.GetMarker() );
 		}
 
 		#region Get
 		public List< BigCommerceProduct > GetProducts()
 		{
 			var products = new List< BigCommerceProduct >();
+			var marker = this.GetMarker();
 
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
+					this._webRequestServices.GetResponse< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint, marker ) );
 				this.CreateApiDelay().Wait(); //API requirement
 
 				if( productsWithinPage == null )
 					break;
 
-				this.FillProductsSkus( productsWithinPage );
+				this.FillProductsSkus( productsWithinPage, marker );
 				products.AddRange( productsWithinPage );
 				if( productsWithinPage.Count < RequestMaxLimit )
 					break;
@@ -50,18 +51,19 @@ namespace BigCommerceAccess
 		public async Task< List< BigCommerceProduct > > GetProductsAsync( CancellationToken token )
 		{
 			var products = new List< BigCommerceProduct >();
+			var marker = this.GetMarker();
 
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint ) );
+					await this._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint, marker ) );
 				await this.CreateApiDelay( token ); //API requirement
 
 				if( productsWithinPage == null )
 					break;
 
-				await this.FillProductsSkusAsync( productsWithinPage, token );
+				await this.FillProductsSkusAsync( productsWithinPage, token, marker );
 				products.AddRange( productsWithinPage );
 				if( productsWithinPage.Count < RequestMaxLimit )
 					break;
@@ -70,7 +72,7 @@ namespace BigCommerceAccess
 			return products;
 		}
 
-		private void FillProductsSkus( IEnumerable< BigCommerceProduct > products )
+		private void FillProductsSkus( IEnumerable< BigCommerceProduct > products, string marker )
 		{
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
@@ -78,7 +80,7 @@ namespace BigCommerceAccess
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = ActionPolicies.Get.Get( () =>
-						this._webRequestServices.GetResponse< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
+						this._webRequestServices.GetResponse< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
 					this.CreateApiDelay().Wait(); //API requirement
 
 					if( options == null )
@@ -90,7 +92,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token )
+		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
 		{
 			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
 			{
@@ -98,7 +100,7 @@ namespace BigCommerceAccess
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = await ActionPolicies.GetAsync.Get( async () =>
-						await this._webRequestServices.GetResponseAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint ) );
+						await this._webRequestServices.GetResponseAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
 					await this.CreateApiDelay( token ); //API requirement
 
 					if( options == null )
@@ -114,6 +116,8 @@ namespace BigCommerceAccess
 		#region Update
 		public void UpdateProducts( List< BigCommerceProduct > products )
 		{
+			var marker = this.GetMarker();
+
 			foreach( var product in products )
 			{
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
@@ -121,7 +125,7 @@ namespace BigCommerceAccess
 
 				ActionPolicies.Submit.Do( () =>
 				{
-					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
@@ -131,6 +135,8 @@ namespace BigCommerceAccess
 
 		public async Task UpdateProductsAsync( List< BigCommerceProduct > products, CancellationToken token )
 		{
+			var marker = this.GetMarker();
+
 			foreach( var product in products )
 			{
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
@@ -138,7 +144,7 @@ namespace BigCommerceAccess
 
 				await ActionPolicies.SubmitAsync.Do( async () =>
 				{
-					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
 
 					//API requirement
 					await this.CreateApiDelay( token );
@@ -148,6 +154,8 @@ namespace BigCommerceAccess
 
 		public void UpdateProductOptions( List< BigCommerceProductOption > productOptions )
 		{
+			var marker = this.GetMarker();
+
 			foreach( var option in productOptions )
 			{
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
@@ -155,7 +163,7 @@ namespace BigCommerceAccess
 
 				ActionPolicies.Submit.Do( () =>
 				{
-					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
 
 					//API requirement
 					this.CreateApiDelay().Wait();
@@ -165,6 +173,8 @@ namespace BigCommerceAccess
 
 		public async Task UpdateProductOptionsAsync( List< BigCommerceProductOption > productOptions, CancellationToken token )
 		{
+			var marker = this.GetMarker();
+
 			foreach( var option in productOptions )
 			{
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
@@ -172,7 +182,7 @@ namespace BigCommerceAccess
 
 				await ActionPolicies.SubmitAsync.Do( async () =>
 				{
-					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent );
+					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
 
 					//API requirement
 					await this.CreateApiDelay( token );
