@@ -199,7 +199,7 @@ namespace BigCommerceAccess.Services
 				this.GetResponse< BigCommerceItemsCount >( url, marker );
 				return config.NativeHost;
 			}
-			catch( WebException )
+			catch( Exception )
 			{
 				try
 				{
@@ -207,7 +207,7 @@ namespace BigCommerceAccess.Services
 					this.GetResponse< BigCommerceItemsCount >( url, marker );
 					return config.CustomHost;
 				}
-				catch( WebException )
+				catch( Exception )
 				{
 					var clippedHost = config.CustomHost.Replace( "www.", string.Empty );
 					var url = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCount.Command );
