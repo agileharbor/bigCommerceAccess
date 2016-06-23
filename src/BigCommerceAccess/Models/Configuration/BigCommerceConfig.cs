@@ -1,4 +1,6 @@
-﻿using CuttingEdge.Conditions;
+﻿using System;
+using System.Collections.Generic;
+using CuttingEdge.Conditions;
 
 namespace BigCommerceAccess.Models.Configuration
 {
@@ -16,11 +18,54 @@ namespace BigCommerceAccess.Models.Configuration
 			Condition.Requires( userName, "userName" ).IsNotNullOrWhiteSpace();
 			Condition.Requires( apiKey, "apiKey" ).IsNotNullOrWhiteSpace();
 
-			this.NativeHost = string.Format( "https://{0}.mybigcommerce.com", shopName );
-			this.CustomHost = string.Format( "https://www.{0}.com", shopName );
+			var domainAndShopName = this.GetDomainAndShopName( shopName );
+
+			this.NativeHost = string.Format( "https://{0}.mybigcommerce{1}", domainAndShopName.Item2, domainAndShopName.Item1 );
+			this.CustomHost = string.Format( "https://www.{0}{1}", domainAndShopName.Item2, domainAndShopName.Item1 );
 			this.ShopName = shopName;
 			this.UserName = userName;
 			this.ApiKey = apiKey;
 		}
+
+		private Tuple< string, string > GetDomainAndShopName( string shopName )
+		{
+			var lastIndexPoint = shopName.LastIndexOf( '.' );
+			if( lastIndexPoint == -1 )
+				return new Tuple< string, string >( ".com", shopName );
+
+			var domain = shopName.Substring( lastIndexPoint );
+			if( this._existDomains.Contains( domain ) )
+				return new Tuple< string, string >( domain, shopName.Substring( 0, lastIndexPoint ) );
+
+			return new Tuple< string, string >( ".com", shopName );
+		}
+
+		private readonly List< string > _existDomains = new List< string >
+		{
+			".aero",
+			".asia",
+			".biz",
+			".cat",
+			".com",
+			".coop",
+			".edu",
+			".gov",
+			".info",
+			".int",
+			".jobs",
+			".mil",
+			".mobi",
+			".museum",
+			".name",
+			".net",
+			".org",
+			".post",
+			".pro",
+			".properties",
+			".tel",
+			".travel",
+			".ru",
+			".uk"
+		};
 	}
 }
