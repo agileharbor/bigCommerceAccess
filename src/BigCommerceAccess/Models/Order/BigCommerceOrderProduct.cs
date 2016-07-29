@@ -15,6 +15,9 @@ namespace BigCommerceAccess.Models.Order
 		public int Quantity { get; set; }
 
 		[ DataMember( Name = "price_inc_tax" ) ]
-		public string Price { get; set; }
+		public string PriceIncTax{ get; set; }
+
+		[ DataMember( Name = "base_price" ) ]
+		public string BasePrice{ get; set; }
 	}
 }
