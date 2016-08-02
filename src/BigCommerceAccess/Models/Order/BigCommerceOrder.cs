@@ -26,6 +26,12 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "billing_address" ) ]
 		public BigCommerceBillingAddress BillingAddress{ get; set; }
 
+		[ DataMember( Name = "customer_message" ) ]
+		public string CustomerMessage{ get; set; }
+
+		[ DataMember( Name = "staff_notes" ) ]
+		public string StaffNotes{ get; set; }
+
 		[ DataMember( Name = "total_inc_tax" ) ]
 		public string Total{ get; set; }
 
