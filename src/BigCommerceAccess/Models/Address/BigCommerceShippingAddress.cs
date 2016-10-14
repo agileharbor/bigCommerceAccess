@@ -25,5 +25,8 @@ namespace BigCommerceAccess.Models.Address
 
 		[ DataMember( Name = "country_iso2" ) ]
 		public string CountryIso2 { get; set; }
+
+		[ DataMember( Name = "shipping_method" ) ]
+		public string ShippingMethod{ get; set; }
 	}
 }
