@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models;
@@ -15,6 +16,8 @@ namespace BigCommerceAccess.Services
 {
 	internal class WebRequestServices
 	{
+		private const int RequestTimeout = 30 * 60 * 1000;
+
 		private readonly BigCommerceConfig _config;
 		private readonly string _host;
 
@@ -78,8 +81,13 @@ namespace BigCommerceAccess.Services
 			{
 				T result;
 				var request = this.CreateGetServiceGetRequest( url );
+				var timeoutToken = this.GetTimeoutToken( RequestTimeout );
+				using( timeoutToken.Register( request.Abort ) )
 				using( var response = await request.GetResponseAsync() )
+				{
+					timeoutToken.ThrowIfCancellationRequested();
 					result = this.ParseResponse< T >( response, marker );
+				}
 				return result;
 			}
 			catch( Exception ex )
@@ -113,8 +121,13 @@ namespace BigCommerceAccess.Services
 			try
 			{
 				var request = this.CreateServicePutRequest( url, jsonContent );
+				var timeoutToken = this.GetTimeoutToken( RequestTimeout );
+				using( timeoutToken.Register( request.Abort ) )
 				using( var response = await request.GetResponseAsync() )
+				{
+					timeoutToken.ThrowIfCancellationRequested();
 					this.LogPutInfoResult( url, ( ( HttpWebResponse )response ).StatusCode, jsonContent, marker );
+				}
 			}
 			catch( Exception ex )
 			{
@@ -142,6 +155,8 @@ namespace BigCommerceAccess.Services
 
 			request.Method = WebRequestMethods.Http.Get;
 			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
+			request.Timeout = RequestTimeout;
+			request.ReadWriteTimeout = RequestTimeout;
 
 			return request;
 		}
@@ -156,6 +171,8 @@ namespace BigCommerceAccess.Services
 			request.Method = WebRequestMethods.Http.Put;
 			request.ContentType = "application/json";
 			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
+			request.Timeout = RequestTimeout;
+			request.ReadWriteTimeout = RequestTimeout;
 
 			using( var writer = new StreamWriter( request.GetRequestStream() ) )
 				writer.Write( content );
@@ -215,6 +232,13 @@ namespace BigCommerceAccess.Services
 					return clippedHost;
 				}
 			}
+		}
+
+		private CancellationToken GetTimeoutToken( int timeout )
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			cancellationTokenSource.CancelAfter( timeout );
+			return cancellationTokenSource.Token;
 		}
 
 		private void LogGetInfo( string url, string marker )
