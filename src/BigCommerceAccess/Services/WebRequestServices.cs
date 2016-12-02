@@ -16,7 +16,7 @@ namespace BigCommerceAccess.Services
 {
 	internal class WebRequestServices
 	{
-		private const int RequestTimeout = 30 * 60 * 1000;
+		private const int RequestTimeoutMs = 30 * 60 * 1000;
 
 		private readonly BigCommerceConfig _config;
 		private readonly string _host;
@@ -81,7 +81,7 @@ namespace BigCommerceAccess.Services
 			{
 				T result;
 				var request = this.CreateGetServiceGetRequest( url );
-				var timeoutToken = this.GetTimeoutToken( RequestTimeout );
+				var timeoutToken = this.GetTimeoutToken( RequestTimeoutMs );
 				using( timeoutToken.Register( request.Abort ) )
 				using( var response = await request.GetResponseAsync() )
 				{
@@ -121,7 +121,7 @@ namespace BigCommerceAccess.Services
 			try
 			{
 				var request = this.CreateServicePutRequest( url, jsonContent );
-				var timeoutToken = this.GetTimeoutToken( RequestTimeout );
+				var timeoutToken = this.GetTimeoutToken( RequestTimeoutMs );
 				using( timeoutToken.Register( request.Abort ) )
 				using( var response = await request.GetResponseAsync() )
 				{
@@ -155,8 +155,8 @@ namespace BigCommerceAccess.Services
 
 			request.Method = WebRequestMethods.Http.Get;
 			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
-			request.Timeout = RequestTimeout;
-			request.ReadWriteTimeout = RequestTimeout;
+			request.Timeout = RequestTimeoutMs;
+			request.ReadWriteTimeout = RequestTimeoutMs;
 
 			return request;
 		}
@@ -171,8 +171,8 @@ namespace BigCommerceAccess.Services
 			request.Method = WebRequestMethods.Http.Put;
 			request.ContentType = "application/json";
 			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
-			request.Timeout = RequestTimeout;
-			request.ReadWriteTimeout = RequestTimeout;
+			request.Timeout = RequestTimeoutMs;
+			request.ReadWriteTimeout = RequestTimeoutMs;
 
 			using( var writer = new StreamWriter( request.GetRequestStream() ) )
 				writer.Write( content );
