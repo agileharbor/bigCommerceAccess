@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -10,6 +12,7 @@ using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
+using BigCommerceAccess.Models.Order;
 using ServiceStack;
 
 namespace BigCommerceAccess.Services
@@ -195,6 +198,14 @@ namespace BigCommerceAccess.Services
 
 				if( !string.IsNullOrEmpty( jsonResponse ) )
 					result = jsonResponse.FromJson< T >();
+
+				//TODO: Added for investigation SI-730. Remove it
+				var orders = result as List< BigCommerceOrder >;
+				if( orders != null && orders.Count > 0 )
+				{
+					var ordersStr = string.Join( ", ", orders.Select( x => $"id:{x.Id} date:{x.DateCreated}" ) );
+					BigCommerceLogger.Log.Trace( "Marker: '{0}'. Url: '{1}' Retrieved BigCommerce orders: '{2}'", marker, response.ResponseUri.OriginalString, ordersStr );
+				}
 			}
 
 			return result;
