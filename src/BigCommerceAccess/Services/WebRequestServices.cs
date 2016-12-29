@@ -203,7 +203,7 @@ namespace BigCommerceAccess.Services
 				var orders = result as List< BigCommerceOrder >;
 				if( orders != null && orders.Count > 0 )
 				{
-					var ordersStr = string.Join( ", ", orders.Select( x => $"id:{x.Id} date:{x.DateCreated}" ) );
+					var ordersStr = string.Join( ", ", orders.Select( x => string.Format( "id:{0} date:{1}", x.Id, x.DateCreated ) ) );
 					BigCommerceLogger.Log.Trace( "Marker: '{0}'. Url: '{1}' Retrieved BigCommerce orders: '{2}'", marker, response.ResponseUri.OriginalString, ordersStr );
 				}
 			}
