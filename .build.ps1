@@ -88,8 +88,9 @@ task NuGet Package, Version, {
 		<dependencies> 
 			<group targetFramework="net45">
 				<dependency id="Netco" version="1.5.5" />
-				<dependency id="ServiceStack.Text" version="4.0.60" />
-				<dependency id="CuttingEdge.Conditions" version="1.2.0.0" />
+                <dependency id="Newtonsoft.Json" version="8.0.3" />				
+                <dependency id="ServiceStack.Text" version="4.0.60" />
+                <dependency id="CuttingEdge.Conditions" version="1.2.0.0" />
 			</group>
 		</dependencies>
 	</metadata>

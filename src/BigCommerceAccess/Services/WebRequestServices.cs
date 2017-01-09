@@ -13,6 +13,7 @@ using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Order;
+using Newtonsoft.Json;
 using ServiceStack;
 
 namespace BigCommerceAccess.Services
@@ -187,8 +188,6 @@ namespace BigCommerceAccess.Services
 		#region Misc
 		private T ParseResponse< T >( WebResponse response, string marker )
 		{
-			var result = default(T);
-
 			using( var stream = response.GetResponseStream() )
 			using( var reader = new StreamReader( stream ) )
 			{
@@ -196,19 +195,33 @@ namespace BigCommerceAccess.Services
 
 				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse, marker );
 
-				if( !string.IsNullOrEmpty( jsonResponse ) )
-					result = jsonResponse.FromJson< T >();
+				if( string.IsNullOrEmpty( jsonResponse ) )
+					return default(T);
 
-				//TODO: Added for investigation SI-730. Remove it
-				var orders = result as List< BigCommerceOrder >;
+				var serviceStackResult = jsonResponse.FromJson< T >();
+				var jsonNetResult = JsonConvert.DeserializeObject< T >( jsonResponse );
+
+				//TODO: Added for investigation SI-730. Remove it if all are ok
+				var orders = serviceStackResult as List< BigCommerceOrder >;
 				if( orders != null && orders.Count > 0 )
 				{
-					var ordersStr = string.Join( ", ", orders.Select( x => string.Format( "id:{0} date:{1}", x.Id, x.DateCreated ) ) );
-					BigCommerceLogger.Log.Trace( "Marker: '{0}'. Url: '{1}' Retrieved BigCommerce orders: '{2}'", marker, response.ResponseUri.OriginalString, ordersStr );
-				}
-			}
+					var serviceStackOrdersStr = string.Join( ", ", orders.Select( x => string.Format( "id:{0} date:{1}", x.Id, x.DateCreated ) ) );
+					BigCommerceLogger.Log.Trace( "Marker: '{0}'. Url: '{1}' Retrieved ServiceStack BigCommerce orders: '{2}'",
+						marker, response.ResponseUri.OriginalString, serviceStackOrdersStr );
 
-			return result;
+					var jsonNetOrders = jsonNetResult as List< BigCommerceOrder >;
+					if( jsonNetOrders != null && jsonNetOrders.Count > 0 )
+					{
+						var jsonNetOrdersStr = string.Join( ", ", orders.Select( x => string.Format( "id:{0} date:{1}", x.Id, x.DateCreated ) ) );
+						if( !serviceStackOrdersStr.Equals( jsonNetOrdersStr ) )
+						{
+							BigCommerceLogger.Log.Warn( "Marker: '{0}'. Url: '{1}' Retrieved different Json.Net BigCommerce orders: '{2}'",
+								marker, response.ResponseUri.OriginalString, jsonNetOrdersStr );
+						}
+					}
+				}
+				return jsonNetResult;
+			}
 		}
 
 		private string CreateAuthenticationHeader()
