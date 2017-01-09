@@ -15,7 +15,7 @@ namespace BigCommerceAccess.Models.Order
 		public DateTime DateCreated{ get; set; }
 
 		[ DataMember( Name = "date_shipped" ) ]
-		public DateTime DateShipped{ get; set; }
+		public DateTime? DateShipped{ get; set; }
 
 		[ DataMember( Name = "products" ) ]
 		public BigCommerceReferenceObject ProductsReference{ get; set; }
