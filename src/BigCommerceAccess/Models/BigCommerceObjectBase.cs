@@ -2,9 +2,10 @@
 
 namespace BigCommerceAccess.Models
 {
+	[ DataContract ]
 	public abstract class BigCommerceObjectBase
 	{
 		[ DataMember( Name = "id" ) ]
-		public long Id { get; set; }
+		public long Id{ get; set; }
 	}
 }
