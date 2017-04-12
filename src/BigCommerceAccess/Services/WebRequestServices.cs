@@ -31,6 +31,14 @@ namespace BigCommerceAccess.Services
 			this._host = this.ResolveHost( config, marker );
 		}
 
+		private static HttpWebRequest CreateWebRequest( string url )
+		{
+			AllowInvalidCertificate();
+			SetSecurityProtocol();
+			var uri = new Uri( url );
+			return ( HttpWebRequest )WebRequest.Create( uri );
+		}
+
 		public T GetResponse< T >( string url, string commandParams, string marker )
 		{
 			var requestUrl = this.GetUrl( url, commandParams );
@@ -152,10 +160,7 @@ namespace BigCommerceAccess.Services
 
 		private HttpWebRequest CreateGetServiceGetRequest( string url )
 		{
-			this.AllowInvalidCertificate();
-
-			var uri = new Uri( url );
-			var request = ( HttpWebRequest )WebRequest.Create( uri );
+			var request = CreateWebRequest( url );
 
 			request.Method = WebRequestMethods.Http.Get;
 			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
@@ -167,10 +172,7 @@ namespace BigCommerceAccess.Services
 
 		private HttpWebRequest CreateServicePutRequest( string url, string content )
 		{
-			this.AllowInvalidCertificate();
-
-			var uri = new Uri( url );
-			var request = ( HttpWebRequest )WebRequest.Create( uri );
+			var request = CreateWebRequest( url );
 
 			request.Method = WebRequestMethods.Http.Put;
 			request.ContentType = "application/json";
@@ -297,14 +299,19 @@ namespace BigCommerceAccess.Services
 		#endregion
 
 		#region SSL certificate hack
-		private void AllowInvalidCertificate()
+		private static void AllowInvalidCertificate()
 		{
-			ServicePointManager.ServerCertificateValidationCallback += this.AllowCert;
+			ServicePointManager.ServerCertificateValidationCallback += AllowCert;
 		}
 
-		private bool AllowCert( object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error )
+		private static bool AllowCert( object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error )
 		{
 			return true;
+		}
+
+		public static void SetSecurityProtocol()
+		{
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
 		}
 		#endregion
 	}
