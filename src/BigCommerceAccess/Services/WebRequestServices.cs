@@ -195,7 +195,9 @@ namespace BigCommerceAccess.Services
 			{
 				var jsonResponse = reader.ReadToEnd();
 
-				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse, marker );
+				var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
+				var version = response.Headers.Get( "X-BC-Store-Version" );
+				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse, remainingLimit, version, marker );
 
 				if( string.IsNullOrEmpty( jsonResponse ) )
 					return default(T);
@@ -272,9 +274,10 @@ namespace BigCommerceAccess.Services
 			BigCommerceLogger.Log.Trace( "Marker: '{0}'. GET call for url '{1}'", marker, url );
 		}
 
-		private void LogGetInfoResult( string url, HttpStatusCode statusCode, string jsonContent, string marker )
+		private void LogGetInfoResult( string url, HttpStatusCode statusCode, string jsonContent, string remainingLimit, string version, string marker )
 		{
-			BigCommerceLogger.Log.Trace( "Marker: '{0}'. GET call for url '{1}' has been completed with code '{2}'.\n{3}", marker, url, statusCode, jsonContent );
+			BigCommerceLogger.Log.Trace( "Marker: '{0}'. GET call for url '{1}' has been completed with code '{2}'. Remaining Limit: '{3}' Version: '{4}'.\n{5}",
+				marker, url, statusCode, remainingLimit, version, jsonContent );
 		}
 
 		private Exception ExceptionForGetInfo( string url, Exception ex, string marker )
