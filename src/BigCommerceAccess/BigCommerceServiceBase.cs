@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BigCommerceAccess.Models.Throttling;
 
 namespace BigCommerceAccess
 {
@@ -11,15 +12,16 @@ namespace BigCommerceAccess
 		//to have 18000 per hour and 2000 calls for the retry needs
 		private readonly TimeSpan DefaultApiDelay = TimeSpan.FromMilliseconds( 200 );
 		protected const int RequestMaxLimit = 250;
+		protected const int MaxThreadsCount = 10;
 
-		protected Task CreateApiDelay()
+		protected Task CreateApiDelay( IBigCommerceRateLimits limits )
 		{
-			return Task.Delay( this.DefaultApiDelay );
+			return this.CreateApiDelay( limits, CancellationToken.None );
 		}
 
-		protected Task CreateApiDelay( CancellationToken token )
+		protected Task CreateApiDelay( IBigCommerceRateLimits limits, CancellationToken token )
 		{
-			return Task.Delay( this.DefaultApiDelay, token );
+			return limits.IsUnlimitedCallsCount ? Task.FromResult( 0 ) : Task.Delay( this.DefaultApiDelay, token );
 		}
 
 		protected int CalculatePagesCount( int itemsCount )

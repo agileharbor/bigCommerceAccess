@@ -13,6 +13,7 @@ using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Order;
+using BigCommerceAccess.Models.Throttling;
 using Newtonsoft.Json;
 using ServiceStack;
 
@@ -39,41 +40,41 @@ namespace BigCommerceAccess.Services
 			return ( HttpWebRequest )WebRequest.Create( uri );
 		}
 
-		public T GetResponse< T >( string url, string commandParams, string marker )
+		public BigCommerceResponse< T > GetResponse< T >( string url, string commandParams, string marker ) where T : class
 		{
 			var requestUrl = this.GetUrl( url, commandParams );
 			var result = this.GetResponse< T >( requestUrl, marker );
 			return result;
 		}
 
-		public async Task< T > GetResponseAsync< T >( string url, string commandParams, string marker )
+		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( string url, string commandParams, string marker ) where T : class
 		{
 			var requestUrl = this.GetUrl( url, commandParams );
 			var result = await this.GetResponseAsync< T >( requestUrl, marker );
 			return result;
 		}
 
-		public T GetResponse< T >( BigCommerceCommand command, string commandParams, string marker )
+		public BigCommerceResponse< T > GetResponse< T >( BigCommerceCommand command, string commandParams, string marker ) where T : class
 		{
 			var requestUrl = this.GetUrl( command, commandParams );
 			var result = this.GetResponse< T >( requestUrl, marker );
 			return result;
 		}
 
-		public async Task< T > GetResponseAsync< T >( BigCommerceCommand command, string commandParams, string marker )
+		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( BigCommerceCommand command, string commandParams, string marker ) where T : class
 		{
 			var requestUrl = this.GetUrl( command, commandParams );
 			var result = await this.GetResponseAsync< T >( requestUrl, marker );
 			return result;
 		}
 
-		public T GetResponse< T >( string url, string marker )
+		public BigCommerceResponse< T > GetResponse< T >( string url, string marker ) where T : class
 		{
 			this.LogGetInfo( url, marker );
 
 			try
 			{
-				T result;
+				BigCommerceResponse< T > result;
 				var request = this.CreateGetServiceGetRequest( url );
 				using( var response = request.GetResponse() )
 					result = this.ParseResponse< T >( response, marker );
@@ -85,13 +86,13 @@ namespace BigCommerceAccess.Services
 			}
 		}
 
-		public async Task< T > GetResponseAsync< T >( string url, string marker )
+		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( string url, string marker ) where T : class
 		{
 			this.LogGetInfo( url, marker );
 
 			try
 			{
-				T result;
+				BigCommerceResponse< T > result;
 				var request = this.CreateGetServiceGetRequest( url );
 				var timeoutToken = this.GetTimeoutToken( RequestTimeoutMs );
 				using( timeoutToken.Register( request.Abort ) )
@@ -108,7 +109,7 @@ namespace BigCommerceAccess.Services
 			}
 		}
 
-		public void PutData( BigCommerceCommand command, string endpoint, string jsonContent, string marker )
+		public IBigCommerceRateLimits PutData( BigCommerceCommand command, string endpoint, string jsonContent, string marker )
 		{
 			var url = this.GetUrl( command, endpoint );
 			this.LogPutInfo( url, jsonContent, marker );
@@ -117,7 +118,10 @@ namespace BigCommerceAccess.Services
 			{
 				var request = this.CreateServicePutRequest( url, jsonContent );
 				using( var response = ( HttpWebResponse )request.GetResponse() )
+				{
 					this.LogPutInfoResult( url, response.StatusCode, jsonContent, marker );
+					return this.ParseLimits( response );
+				}
 			}
 			catch( Exception ex )
 			{
@@ -125,7 +129,7 @@ namespace BigCommerceAccess.Services
 			}
 		}
 
-		public async Task PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent, string marker )
+		public async Task< IBigCommerceRateLimits > PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent, string marker )
 		{
 			var url = this.GetUrl( command, endpoint );
 			this.LogPutInfo( url, jsonContent, marker );
@@ -139,6 +143,7 @@ namespace BigCommerceAccess.Services
 				{
 					timeoutToken.ThrowIfCancellationRequested();
 					this.LogPutInfoResult( url, ( ( HttpWebResponse )response ).StatusCode, jsonContent, marker );
+					return this.ParseLimits( response );
 				}
 			}
 			catch( Exception ex )
@@ -188,7 +193,7 @@ namespace BigCommerceAccess.Services
 		#endregion
 
 		#region Misc
-		private T ParseResponse< T >( WebResponse response, string marker )
+		private BigCommerceResponse< T > ParseResponse< T >( WebResponse response, string marker ) where T : class
 		{
 			using( var stream = response.GetResponseStream() )
 			using( var reader = new StreamReader( stream ) )
@@ -198,9 +203,10 @@ namespace BigCommerceAccess.Services
 				var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
 				var version = response.Headers.Get( "X-BC-Store-Version" );
 				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse, remainingLimit, version, marker );
+				var limits = this.ParseLimits( response );
 
 				if( string.IsNullOrEmpty( jsonResponse ) )
-					return default(T);
+					return new BigCommerceResponse< T >( null, limits );
 
 				var serviceStackResult = jsonResponse.FromJson< T >();
 				var jsonNetResult = JsonConvert.DeserializeObject< T >( jsonResponse );
@@ -224,8 +230,17 @@ namespace BigCommerceAccess.Services
 						}
 					}
 				}
-				return jsonNetResult;
+				return new BigCommerceResponse< T >( jsonNetResult, limits );
 			}
+		}
+
+		private IBigCommerceRateLimits ParseLimits( WebResponse response )
+		{
+			var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
+			var callsRemaining = 0;
+			if( !string.IsNullOrWhiteSpace( remainingLimit ) )
+				int.TryParse( remainingLimit, out callsRemaining );
+			return new BigCommerceLimits( callsRemaining );
 		}
 
 		private string CreateAuthenticationHeader()

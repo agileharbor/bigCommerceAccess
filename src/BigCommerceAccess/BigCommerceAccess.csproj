@@ -69,6 +69,8 @@
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\BigCommerceLogger.cs" />
     <Compile Include="Models\BigCommerceObjectBase.cs" />
+    <Compile Include="Models\Throttling\BigCommerceLimits.cs" />
+    <Compile Include="Models\BigCommerceResponse.cs" />
     <Compile Include="Models\Configuration\BigCommerceCommandConfig.cs" />
     <Compile Include="Models\Order\BigCommerceOrder.cs" />
     <Compile Include="Models\Order\BigCommerceOrderProduct.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="Models\Product\BigCommerceProduct.cs" />
     <Compile Include="Models\Product\BigCommerceProductBase.cs" />
     <Compile Include="Models\Product\BigCommerceProductOption.cs" />
+    <Compile Include="Models\Throttling\IBigCommerceRateLimits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ParamsBuilder.cs" />
     <Compile Include="Services\WebRequestServices.cs" />

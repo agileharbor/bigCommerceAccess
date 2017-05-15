@@ -9,6 +9,7 @@ using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Order;
 using BigCommerceAccess.Services;
 using CuttingEdge.Conditions;
+using Netco.Extensions;
 
 namespace BigCommerceAccess
 {
@@ -34,15 +35,15 @@ namespace BigCommerceAccess
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var ordersWithinPage = ActionPolicies.Get.Get( () =>
 					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint, marker ) );
-				this.CreateApiDelay().Wait(); //API requirement
+				this.CreateApiDelay( ordersWithinPage.Limits ).Wait(); //API requirement
 
-				if( ordersWithinPage == null )
+				if( ordersWithinPage.Response == null )
 					break;
 
-				this.GetOrdersProducts( ordersWithinPage, marker );
-				this.GetOrdersShippingAddresses( ordersWithinPage, marker );
-				orders.AddRange( ordersWithinPage );
-				if( ordersWithinPage.Count < RequestMaxLimit )
+				this.GetOrdersProducts( ordersWithinPage.Response, marker );
+				this.GetOrdersShippingAddresses( ordersWithinPage.Response, marker );
+				orders.AddRange( ordersWithinPage.Response );
+				if( ordersWithinPage.Response.Count < RequestMaxLimit )
 					break;
 			}
 
@@ -60,15 +61,15 @@ namespace BigCommerceAccess
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint, marker ) );
-				await this.CreateApiDelay( token ); //API requirement
+				await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
 
-				if( ordersWithinPage == null )
+				if( ordersWithinPage.Response == null )
 					break;
 
-				await this.GetOrdersProductsAsync( ordersWithinPage, token, marker );
-				await this.GetOrdersShippingAddressesAsync( ordersWithinPage, token, marker );
-				orders.AddRange( ordersWithinPage );
-				if( ordersWithinPage.Count < RequestMaxLimit )
+				await this.GetOrdersProductsAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				await this.GetOrdersShippingAddressesAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				orders.AddRange( ordersWithinPage.Response );
+				if( ordersWithinPage.Response.Count < RequestMaxLimit )
 					break;
 			}
 
@@ -86,35 +87,36 @@ namespace BigCommerceAccess
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var products = ActionPolicies.Get.Get( () =>
 						this._webRequestServices.GetResponse< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
-					this.CreateApiDelay().Wait(); //API requirement
+					this.CreateApiDelay( products.Limits ).Wait(); //API requirement
 
-					if( products == null )
+					if( products.Response == null )
 						break;
-					order.Products.AddRange( products );
-					if( products.Count < RequestMaxLimit )
+					order.Products.AddRange( products.Response );
+					if( products.Response.Count < RequestMaxLimit )
 						break;
 				}
 			}
 		}
 
-		private async Task GetOrdersProductsAsync( IEnumerable< BigCommerceOrder > orders, CancellationToken token, string marker )
+		private async Task GetOrdersProductsAsync( IEnumerable< BigCommerceOrder > orders, bool isUnlimit, CancellationToken token, string marker )
 		{
-			foreach( var order in orders )
+			var threadCount = isUnlimit ? MaxThreadsCount : 1;
+			await orders.DoInBatchAsync( threadCount, async order =>
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var products = await ActionPolicies.GetAsync.Get( async () =>
 						await this._webRequestServices.GetResponseAsync< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
-					await this.CreateApiDelay( token ); //API requirement
+					await this.CreateApiDelay( products.Limits, token ); //API requirement
 
-					if( products == null )
+					if( products.Response == null )
 						break;
-					order.Products.AddRange( products );
-					if( products.Count < RequestMaxLimit )
+					order.Products.AddRange( products.Response );
+					if( products.Response.Count < RequestMaxLimit )
 						break;
 				}
-			}
+			} );
 		}
 		#endregion
 
@@ -123,20 +125,23 @@ namespace BigCommerceAccess
 		{
 			foreach( var order in orders )
 			{
-				order.ShippingAddresses = ActionPolicies.Get.Get( () =>
+				var addresses = ActionPolicies.Get.Get( () =>
 					this._webRequestServices.GetResponse< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
-				this.CreateApiDelay().Wait(); //API requirement
+				order.ShippingAddresses = addresses.Response;
+				this.CreateApiDelay( addresses.Limits ).Wait(); //API requirement
 			}
 		}
 
-		private async Task GetOrdersShippingAddressesAsync( IEnumerable< BigCommerceOrder > orders, CancellationToken token, string marker )
+		private async Task GetOrdersShippingAddressesAsync( IEnumerable< BigCommerceOrder > orders, bool isUnlimit, CancellationToken token, string marker )
 		{
-			foreach( var order in orders )
+			var threadCount = isUnlimit ? MaxThreadsCount : 1;
+			await orders.DoInBatchAsync( threadCount, async order =>
 			{
-				order.ShippingAddresses = await ActionPolicies.GetAsync.Get( async () =>
+				var addresses = await ActionPolicies.GetAsync.Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
-				await this.CreateApiDelay( token ); //API requirement
-			}
+				order.ShippingAddresses = addresses.Response;
+				await this.CreateApiDelay( addresses.Limits, token ); //API requirement
+			} );
 		}
 		#endregion
 	}

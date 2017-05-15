@@ -8,6 +8,7 @@ using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
 using BigCommerceAccess.Services;
 using CuttingEdge.Conditions;
+using Netco.Extensions;
 using ServiceStack;
 
 namespace BigCommerceAccess
@@ -34,14 +35,14 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = ActionPolicies.Get.Get( () =>
 					this._webRequestServices.GetResponse< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint, marker ) );
-				this.CreateApiDelay().Wait(); //API requirement
+				this.CreateApiDelay( productsWithinPage.Limits ).Wait(); //API requirement
 
-				if( productsWithinPage == null )
+				if( productsWithinPage.Response == null )
 					break;
 
-				this.FillProductsSkus( productsWithinPage, marker );
-				products.AddRange( productsWithinPage );
-				if( productsWithinPage.Count < RequestMaxLimit )
+				this.FillProductsSkus( productsWithinPage.Response, marker );
+				products.AddRange( productsWithinPage.Response );
+				if( productsWithinPage.Response.Count < RequestMaxLimit )
 					break;
 			}
 
@@ -58,14 +59,14 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProducts, endpoint, marker ) );
-				await this.CreateApiDelay( token ); //API requirement
+				await this.CreateApiDelay( productsWithinPage.Limits, token ); //API requirement
 
-				if( productsWithinPage == null )
+				if( productsWithinPage.Response == null )
 					break;
 
-				await this.FillProductsSkusAsync( productsWithinPage, token, marker );
-				products.AddRange( productsWithinPage );
-				if( productsWithinPage.Count < RequestMaxLimit )
+				await this.FillProductsSkusAsync( productsWithinPage.Response, productsWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				products.AddRange( productsWithinPage.Response );
+				if( productsWithinPage.Response.Count < RequestMaxLimit )
 					break;
 			}
 
@@ -81,35 +82,37 @@ namespace BigCommerceAccess
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = ActionPolicies.Get.Get( () =>
 						this._webRequestServices.GetResponse< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
-					this.CreateApiDelay().Wait(); //API requirement
+					this.CreateApiDelay( options.Limits ).Wait(); //API requirement
 
-					if( options == null )
+					if( options.Response == null )
 						break;
-					product.ProductOptions.AddRange( options );
-					if( options.Count < RequestMaxLimit )
+					product.ProductOptions.AddRange( options.Response );
+					if( options.Response.Count < RequestMaxLimit )
 						break;
 				}
 			}
 		}
 
-		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
+		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products, bool isUnlimit, CancellationToken token, string marker )
 		{
-			foreach( var product in products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ) )
+			var threadCount = isUnlimit ? MaxThreadsCount : 1;
+			var skuProducts = products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ).ToList();
+			await skuProducts.DoInBatchAsync( threadCount, async product =>
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var options = await ActionPolicies.GetAsync.Get( async () =>
 						await this._webRequestServices.GetResponseAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
-					await this.CreateApiDelay( token ); //API requirement
+					await this.CreateApiDelay( options.Limits, token ); //API requirement
 
-					if( options == null )
+					if( options.Response == null )
 						break;
-					product.ProductOptions.AddRange( options );
-					if( options.Count < RequestMaxLimit )
+					product.ProductOptions.AddRange( options.Response );
+					if( options.Response.Count < RequestMaxLimit )
 						break;
 				}
-			}
+			} );
 		}
 		#endregion
 
@@ -123,13 +126,9 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-				ActionPolicies.Submit.Do( () =>
-				{
-					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
-
-					//API requirement
-					this.CreateApiDelay().Wait();
-				} );
+				var limit = ActionPolicies.Submit.Get( () =>
+					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker ) );
+				this.CreateApiDelay( limit ).Wait(); //API requirement
 			}
 		}
 
@@ -142,13 +141,10 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-				await ActionPolicies.SubmitAsync.Do( async () =>
-				{
-					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
+				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
+					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker ) );
 
-					//API requirement
-					await this.CreateApiDelay( token );
-				} );
+				await this.CreateApiDelay( limit, token ); //API requirement
 			}
 		}
 
@@ -161,13 +157,9 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
 				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
 
-				ActionPolicies.Submit.Do( () =>
-				{
-					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
-
-					//API requirement
-					this.CreateApiDelay().Wait();
-				} );
+				var limit = ActionPolicies.Submit.Get( () =>
+					this._webRequestServices.PutData( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker ) );
+				this.CreateApiDelay( limit ).Wait(); //API requirement
 			}
 		}
 
@@ -180,13 +172,9 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
 				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
 
-				await ActionPolicies.SubmitAsync.Do( async () =>
-				{
-					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker );
-
-					//API requirement
-					await this.CreateApiDelay( token );
-				} );
+				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
+					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProduct, endpoint, jsonContent, marker ) );
+				await this.CreateApiDelay( limit, token ); //API requirement
 			}
 		}
 		#endregion
