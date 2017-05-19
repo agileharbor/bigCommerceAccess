@@ -96,7 +96,7 @@ namespace BigCommerceAccess
 		private async Task FillProductsSkusAsync( IEnumerable< BigCommerceProduct > products, bool isUnlimit, CancellationToken token, string marker )
 		{
 			var threadCount = isUnlimit ? MaxThreadsCount : 1;
-			var skuProducts = products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) ).ToList();
+			var skuProducts = products.Where( product => product.InventoryTracking.Equals( InventoryTrackingEnum.sku ) );
 			await skuProducts.DoInBatchAsync( threadCount, async product =>
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
