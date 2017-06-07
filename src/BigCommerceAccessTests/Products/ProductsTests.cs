@@ -112,7 +112,7 @@ namespace BigCommerceAccessTests.Products
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV2 );
 
-			var productToUpdate = new BigCommerceProductOption { ProductId = 74, Id = 4, Quantity = "6" };
+			var productToUpdate = new BigCommerceProductOption { ProductId = 45, Id = 53, Quantity = "6" };
 			service.UpdateProductOptions( new List< BigCommerceProductOption > { productToUpdate } );
 		}
 
@@ -121,7 +121,7 @@ namespace BigCommerceAccessTests.Products
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV2 );
 
-			var productToUpdate = new BigCommerceProductOption { ProductId = 74, Id = 4, Quantity = "6" };
+			var productToUpdate = new BigCommerceProductOption { ProductId = 45, Id = 53, Quantity = "6" };
 			await service.UpdateProductOptionsAsync( new List< BigCommerceProductOption > { productToUpdate }, CancellationToken.None );
 		}
 
@@ -130,7 +130,7 @@ namespace BigCommerceAccessTests.Products
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
 
-			var productToUpdate = new BigCommerceProductOption { ProductId = 74, Id = 4, Quantity = "6" };
+			var productToUpdate = new BigCommerceProductOption { ProductId = 45, Id = 53, Quantity = "6" };
 			service.UpdateProductOptions( new List< BigCommerceProductOption > { productToUpdate } );
 		}
 
@@ -139,7 +139,7 @@ namespace BigCommerceAccessTests.Products
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
 
-			var productToUpdate = new BigCommerceProductOption { ProductId = 74, Id = 4, Quantity = "6" };
+			var productToUpdate = new BigCommerceProductOption { ProductId = 45, Id = 53, Quantity = "6" };
 			await service.UpdateProductOptionsAsync( new List< BigCommerceProductOption > { productToUpdate }, CancellationToken.None );
 		}
 	}
