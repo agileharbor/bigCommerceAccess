@@ -72,6 +72,24 @@ namespace BigCommerceAccessTests.Products
 		}
 
 		[ Test ]
+		public void GetProductsInfoV3()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
+			var products = service.GetProductsInfo();
+
+			products.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
+		public async Task GetProductsInfoV3Async()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
+			var products = await service.GetProductsInfoAsync( CancellationToken.None );
+
+			products.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
 		public void ProductsQuantityUpdatedV2()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV2 );

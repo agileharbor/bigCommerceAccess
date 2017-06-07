@@ -15,5 +15,8 @@ namespace BigCommerceAccess
 
 		void UpdateProductOptions( List< BigCommerceProductOption > productOptions );
 		Task UpdateProductOptionsAsync( List< BigCommerceProductOption > productOptions, CancellationToken token );
+
+		List< BigCommerceProductInfo > GetProductsInfo();
+		Task< List< BigCommerceProductInfo > > GetProductsInfoAsync( CancellationToken token );
 	}
 }

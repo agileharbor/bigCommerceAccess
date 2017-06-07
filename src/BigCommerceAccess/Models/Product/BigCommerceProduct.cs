@@ -19,11 +19,4 @@ namespace BigCommerceAccess.Models.Product
 			this.ProductOptions = new List< BigCommerceProductOption >();
 		}
 	}
-
-	public enum InventoryTrackingEnum
-	{
-		none,
-		simple,
-		sku
-	}
 }

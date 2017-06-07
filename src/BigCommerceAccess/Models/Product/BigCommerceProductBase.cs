@@ -11,4 +11,11 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "sku" ) ]
 		public string Sku{ get; set; }
 	}
+
+	public enum InventoryTrackingEnum
+	{
+		none,
+		simple,
+		sku
+	}
 }
