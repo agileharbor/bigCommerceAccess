@@ -17,35 +17,55 @@ namespace BigCommerceAccessTests.Orders
 	public class OrderTests
 	{
 		private readonly IBigCommerceFactory BigCommerceFactory = new BigCommerceFactory();
-		private BigCommerceConfig Config;
+		private BigCommerceConfig ConfigV2;
+		private BigCommerceConfig ConfigV3;
 
 		[ SetUp ]
 		public void Init()
 		{
-			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
-			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
+			//NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			//const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
-			var cc = new CsvContext();
-			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
+			//var cc = new CsvContext();
+			//var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
 
-			if( testConfig != null )
-				this.Config = new BigCommerceConfig( testConfig.ShopName, testConfig.UserName, testConfig.ApiKey );
+			//if( testConfig != null )
+			this.ConfigV2 = new BigCommerceConfig( "store-lgq8il", "skuvault", "47666818d2389afc328cff8122ecca1fac2c1096" );
+			this.ConfigV3 = new BigCommerceConfig( "lgq8il", "62i8xn71zolhblanc26m2ypvmqracu6", "52ivu0055fe6thtmjo65chsjtzob0b4", "fvwxwex323rhjvb7h1ttuys365xbck" );
 		}
 
 		[ Test ]
-		public void GetOrders()
+		public void GetOrdersV2()
 		{
-			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
-			var orders = service.GetOrders( DateTime.UtcNow.AddHours( -1 ), DateTime.UtcNow );
+			var service = this.BigCommerceFactory.CreateOrdersService( this.ConfigV2 );
+			var orders = service.GetOrders( DateTime.UtcNow.AddMonths( -6 ), DateTime.UtcNow );
 
 			orders.Count().Should().BeGreaterThan( 0 );
 		}
 
 		[ Test ]
-		public async Task GetOrdersAsync()
+		public async Task GetOrdersV2Async()
 		{
-			var service = this.BigCommerceFactory.CreateOrdersService( this.Config );
-			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddHours( -1 ), DateTime.UtcNow, CancellationToken.None );
+			var service = this.BigCommerceFactory.CreateOrdersService( this.ConfigV2 );
+			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddMonths( -6 ), DateTime.UtcNow, CancellationToken.None );
+
+			orders.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
+		public void GetOrdersV3()
+		{
+			var service = this.BigCommerceFactory.CreateOrdersService( this.ConfigV3 );
+			var orders = service.GetOrders( DateTime.UtcNow.AddMonths( -6 ), DateTime.UtcNow );
+
+			orders.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
+		public async Task GetOrdersV3Async()
+		{
+			var service = this.BigCommerceFactory.CreateOrdersService( this.ConfigV3 );
+			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddMonths( -6 ), DateTime.UtcNow, CancellationToken.None );
 
 			orders.Count().Should().BeGreaterThan( 0 );
 		}
@@ -53,7 +73,7 @@ namespace BigCommerceAccessTests.Orders
 		[ Test ]
 		public void OrdersNotLoaded_IncorrectApiKey()
 		{
-			var config = new BigCommerceConfig( this.Config.ShopName, this.Config.UserName, "blabla" );
+			var config = new BigCommerceConfig( this.ConfigV2.ShopName, this.ConfigV2.UserName, "blabla" );
 			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
@@ -69,7 +89,7 @@ namespace BigCommerceAccessTests.Orders
 		[ Test ]
 		public void OrdersNotLoaded_IncorrectShopName()
 		{
-			var config = new BigCommerceConfig( "blabla", this.Config.UserName, this.Config.ApiKey );
+			var config = new BigCommerceConfig( "blabla", this.ConfigV2.UserName, this.ConfigV2.ApiKey );
 			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{
@@ -85,7 +105,7 @@ namespace BigCommerceAccessTests.Orders
 		[ Test ]
 		public void OrdersNotLoaded_IncorrectUserName()
 		{
-			var config = new BigCommerceConfig( this.Config.ShopName, "blabla", this.Config.ApiKey );
+			var config = new BigCommerceConfig( this.ConfigV2.ShopName, "blabla", this.ConfigV2.ApiKey );
 			IEnumerable< BigCommerceOrder > orders = null;
 			try
 			{

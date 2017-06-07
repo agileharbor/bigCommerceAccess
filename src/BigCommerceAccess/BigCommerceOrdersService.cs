@@ -16,15 +16,27 @@ namespace BigCommerceAccess
 	public class BigCommerceOrdersService: BigCommerceServiceBase, IBigCommerceOrdersService
 	{
 		private readonly WebRequestServices _webRequestServices;
+		private readonly APIVersion _apiVersion;
 
 		public BigCommerceOrdersService( BigCommerceConfig config )
 		{
 			Condition.Requires( config, "config" ).IsNotNull();
 			this._webRequestServices = new WebRequestServices( config, this.GetMarker() );
+			this._apiVersion = config.GetAPIVersion();
 		}
 
 		#region Orders
 		public List< BigCommerceOrder > GetOrders( DateTime dateFrom, DateTime dateTo )
+		{
+			return this._apiVersion == APIVersion.V2 ? this.GetOrdersForV2( dateFrom, dateTo ) : this.GetOrdersForV3( dateFrom, dateTo );
+		}
+
+		public Task< List< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo, CancellationToken token )
+		{
+			return this._apiVersion == APIVersion.V2 ? this.GetOrdersForV2Async( dateFrom, dateTo, token ) : this.GetOrdersForV3Async( dateFrom, dateTo, token );
+		}
+
+		public List< BigCommerceOrder > GetOrdersForV2( DateTime dateFrom, DateTime dateTo )
 		{
 			var mainEndpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
 			var orders = new List< BigCommerceOrder >();
@@ -34,7 +46,7 @@ namespace BigCommerceAccess
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var ordersWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint, marker ) );
+					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2, compositeEndpoint, marker ) );
 				this.CreateApiDelay( ordersWithinPage.Limits ).Wait(); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -50,7 +62,33 @@ namespace BigCommerceAccess
 			return orders;
 		}
 
-		public async Task< List< BigCommerceOrder > > GetOrdersAsync( DateTime dateFrom, DateTime dateTo, CancellationToken token )
+		public List< BigCommerceOrder > GetOrdersForV3( DateTime dateFrom, DateTime dateTo )
+		{
+			var mainEndpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
+			var orders = new List< BigCommerceOrder >();
+			var marker = this.GetMarker();
+
+			for( var i = 1; i < int.MaxValue; i++ )
+			{
+				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
+				var ordersWithinPage = ActionPolicies.Get.Get( () =>
+					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV3, compositeEndpoint, marker ) );
+				this.CreateApiDelay( ordersWithinPage.Limits ).Wait(); //API requirement
+
+				if( ordersWithinPage.Response == null )
+					break;
+
+				this.GetOrdersProducts( ordersWithinPage.Response, marker );
+				this.GetOrdersShippingAddresses( ordersWithinPage.Response, marker );
+				orders.AddRange( ordersWithinPage.Response );
+				if( ordersWithinPage.Response.Count < RequestMaxLimit )
+					break;
+			}
+
+			return orders;
+		}
+
+		private async Task< List< BigCommerceOrder > > GetOrdersForV2Async( DateTime dateFrom, DateTime dateTo, CancellationToken token )
 		{
 			var mainEndpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
 			var orders = new List< BigCommerceOrder >();
@@ -60,7 +98,7 @@ namespace BigCommerceAccess
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrders, compositeEndpoint, marker ) );
+					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2, compositeEndpoint, marker ) );
 				await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -75,6 +113,33 @@ namespace BigCommerceAccess
 
 			return orders;
 		}
+
+		private async Task< List< BigCommerceOrder > > GetOrdersForV3Async( DateTime dateFrom, DateTime dateTo, CancellationToken token )
+		{
+			var mainEndpoint = ParamsBuilder.CreateOrdersParams( dateFrom, dateTo );
+			var orders = new List< BigCommerceOrder >();
+			var marker = this.GetMarker();
+
+			for( var i = 1; i < int.MaxValue; i++ )
+			{
+				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
+				var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
+					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV3, compositeEndpoint, marker ) );
+				await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
+
+				if( ordersWithinPage.Response == null )
+					break;
+
+				await this.GetOrdersProductsAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				await this.GetOrdersShippingAddressesAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				orders.AddRange( ordersWithinPage.Response );
+				if( ordersWithinPage.Response.Count < RequestMaxLimit )
+					break;
+			}
+
+			return orders;
+		}
+
 		#endregion
 
 		#region Order products
@@ -119,7 +184,7 @@ namespace BigCommerceAccess
 			} );
 		}
 		#endregion
-
+		
 		#region ShippingAddress
 		private void GetOrdersShippingAddresses( IEnumerable< BigCommerceOrder > orders, string marker )
 		{

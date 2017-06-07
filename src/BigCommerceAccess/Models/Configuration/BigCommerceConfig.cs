@@ -12,6 +12,10 @@ namespace BigCommerceAccess.Models.Configuration
 		public string UserName{ get; private set; }
 		public string ApiKey{ get; private set; }
 
+		public string ClientId{ get; private set; }
+		public string ClientSecret{ get; private set; }
+		public string Token{ get; private set; }
+
 		public BigCommerceConfig( string shopName, string userName, string apiKey )
 		{
 			Condition.Requires( shopName, "shopName" ).IsNotNullOrWhiteSpace();
@@ -22,9 +26,38 @@ namespace BigCommerceAccess.Models.Configuration
 
 			this.NativeHost = string.Format( "https://{0}.mybigcommerce{1}", domainAndShopName.Item2, domainAndShopName.Item1 );
 			this.CustomHost = string.Format( "https://www.{0}{1}", domainAndShopName.Item2, domainAndShopName.Item1 );
-			this.ShopName = shopName;
 			this.UserName = userName;
 			this.ApiKey = apiKey;
+
+			this.ShopName = shopName;
+
+			this.ClientId = string.Empty;
+			this.ClientSecret = string.Empty;
+			this.Token = string.Empty;
+		}
+
+		public BigCommerceConfig( string shopName, string clientId, string clientSecret, string token )
+		{
+			Condition.Requires( shopName, "shopName" ).IsNotNullOrWhiteSpace();
+			Condition.Requires( clientId, "clientId" ).IsNotNullOrWhiteSpace();
+			Condition.Requires( clientSecret, "clientSecret" ).IsNotNullOrWhiteSpace();
+			Condition.Requires( token, "token" ).IsNotNullOrWhiteSpace();
+
+			this.NativeHost = string.Format( "https://api.bigcommerce.com/stores/{0}", shopName );
+			this.CustomHost = string.Empty;
+			this.UserName = string.Empty;
+			this.ApiKey = string.Empty;
+
+			this.ShopName = shopName;
+
+			this.ClientId = clientId;
+			this.ClientSecret = clientSecret;
+			this.Token = token;
+		}
+
+		public APIVersion GetAPIVersion()
+		{
+			return string.IsNullOrEmpty( this.ClientId ) ? APIVersion.V2 : APIVersion.V3;
 		}
 
 		private Tuple< string, string > GetDomainAndShopName( string shopName )
@@ -67,5 +100,11 @@ namespace BigCommerceAccess.Models.Configuration
 			".ru",
 			".uk"
 		};
+	}
+
+	public enum APIVersion
+	{
+		V2 = 0,
+		V3 = 1
 	}
 }

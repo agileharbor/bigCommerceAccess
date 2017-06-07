@@ -25,11 +25,14 @@ namespace BigCommerceAccess.Services
 
 		private readonly BigCommerceConfig _config;
 		private readonly string _host;
+		private readonly APIVersion _apiVersion;
+		private const string AcceptValue = "application/json";
 
 		public WebRequestServices( BigCommerceConfig config, string marker )
 		{
 			this._config = config;
-			this._host = this.ResolveHost( config, marker );
+			this._apiVersion = config.GetAPIVersion();
+			this._host = this._apiVersion == APIVersion.V2 ? this.ResolveHost( config, marker ) : config.NativeHost;
 		}
 
 		private static HttpWebRequest CreateWebRequest( string url )
@@ -165,30 +168,66 @@ namespace BigCommerceAccess.Services
 
 		private HttpWebRequest CreateGetServiceGetRequest( string url )
 		{
-			var request = CreateWebRequest( url );
+			if( this._apiVersion == APIVersion.V2 )
+			{
+				var request = CreateWebRequest( url );
 
-			request.Method = WebRequestMethods.Http.Get;
-			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
-			request.Timeout = RequestTimeoutMs;
-			request.ReadWriteTimeout = RequestTimeoutMs;
+				request.Method = WebRequestMethods.Http.Get;
+				request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
+				request.Timeout = RequestTimeoutMs;
+				request.ReadWriteTimeout = RequestTimeoutMs;
 
-			return request;
+				return request;
+			}
+			else
+			{
+				var request = CreateWebRequest( url );
+
+				request.Method = WebRequestMethods.Http.Get;
+				request.Accept = AcceptValue;
+				request.Headers.Add( "X-Auth-Client", this._config.ClientId );
+				request.Headers.Add( "X-Auth-Token", this._config.Token );
+				request.Timeout = RequestTimeoutMs;
+				request.ReadWriteTimeout = RequestTimeoutMs;
+
+				return request;
+			}
 		}
 
 		private HttpWebRequest CreateServicePutRequest( string url, string content )
 		{
-			var request = CreateWebRequest( url );
+			if( this._apiVersion == APIVersion.V2 )
+			{
+				var request = CreateWebRequest( url );
 
-			request.Method = WebRequestMethods.Http.Put;
-			request.ContentType = "application/json";
-			request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
-			request.Timeout = RequestTimeoutMs;
-			request.ReadWriteTimeout = RequestTimeoutMs;
+				request.Method = WebRequestMethods.Http.Put;
+				request.ContentType = "application/json";
+				request.Headers.Add( "Authorization", this.CreateAuthenticationHeader() );
+				request.Timeout = RequestTimeoutMs;
+				request.ReadWriteTimeout = RequestTimeoutMs;
 
-			using( var writer = new StreamWriter( request.GetRequestStream() ) )
-				writer.Write( content );
+				using( var writer = new StreamWriter( request.GetRequestStream() ) )
+					writer.Write( content );
 
-			return request;
+				return request;
+			}
+			else
+			{
+				var request = CreateWebRequest( url );
+
+				request.Method = WebRequestMethods.Http.Put;
+				request.ContentType = "application/json";
+				request.Accept = AcceptValue;
+				request.Headers.Add( "X-Auth-Client", this._config.ClientId );
+				request.Headers.Add( "X-Auth-Token", this._config.Token );
+				request.Timeout = RequestTimeoutMs;
+				request.ReadWriteTimeout = RequestTimeoutMs;
+
+				using( var writer = new StreamWriter( request.GetRequestStream() ) )
+					writer.Write( content );
+
+				return request;
+			}
 		}
 		#endregion
 
@@ -255,7 +294,7 @@ namespace BigCommerceAccess.Services
 		{
 			try
 			{
-				var url = string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCount.Command );
+				var url = string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCountV2.Command );
 				this.GetResponse< BigCommerceItemsCount >( url, marker );
 				return config.NativeHost;
 			}
@@ -263,14 +302,14 @@ namespace BigCommerceAccess.Services
 			{
 				try
 				{
-					var url = string.Concat( config.CustomHost, BigCommerceCommand.GetOrdersCount.Command );
+					var url = string.Concat( config.CustomHost, BigCommerceCommand.GetOrdersCountV2.Command );
 					this.GetResponse< BigCommerceItemsCount >( url, marker );
 					return config.CustomHost;
 				}
 				catch( Exception )
 				{
 					var clippedHost = config.CustomHost.Replace( "www.", string.Empty );
-					var url = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCount.Command );
+					var url = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCountV2.Command );
 					this.GetResponse< BigCommerceItemsCount >( url, marker );
 					return clippedHost;
 				}
