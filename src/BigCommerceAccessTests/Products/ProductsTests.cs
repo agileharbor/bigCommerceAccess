@@ -21,14 +21,14 @@ namespace BigCommerceAccessTests.Products
 		[ SetUp ]
 		public void Init()
 		{
-			//NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
-			//const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
+			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
-			//var cc = new CsvContext();
-			//var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
+			var cc = new CsvContext();
+			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
 
-			//if( testConfig != null )
-			this.Config = new BigCommerceConfig("store-lgq8il", "skuvault", "47666818d2389afc328cff8122ecca1fac2c1096");
+			if( testConfig != null )
+				this.Config = new BigCommerceConfig( testConfig.ShopName, testConfig.UserName, testConfig.ApiKey );
 		}
 
 		[ Test ]
