@@ -21,21 +21,21 @@ namespace BigCommerceAccessTests.Products
 		[ SetUp ]
 		public void Init()
 		{
-			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
-			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
+			//NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			//const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
-			var cc = new CsvContext();
-			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
+			//var cc = new CsvContext();
+			//var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
 
-			if( testConfig != null )
-				this.Config = new BigCommerceConfig( testConfig.ShopName, testConfig.UserName, testConfig.ApiKey );
+			//if( testConfig != null )
+			this.Config = new BigCommerceConfig("store-lgq8il", "skuvault", "47666818d2389afc328cff8122ecca1fac2c1096");
 		}
 
 		[ Test ]
 		public void GetProducts()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
-			var products = service.GetProducts();
+			var products = service.GetProducts( true );
 
 			products.Count().Should().BeGreaterThan( 0 );
 		}
@@ -44,7 +44,7 @@ namespace BigCommerceAccessTests.Products
 		public async Task GetProductsAsync()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.Config );
-			var products = await service.GetProductsAsync( CancellationToken.None );
+			var products = await service.GetProductsAsync( CancellationToken.None, true );
 
 			products.Count().Should().BeGreaterThan( 0 );
 		}

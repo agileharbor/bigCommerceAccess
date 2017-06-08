@@ -69,6 +69,9 @@
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\BigCommerceLogger.cs" />
     <Compile Include="Models\BigCommerceObjectBase.cs" />
+    <Compile Include="Models\Product\BigCommerceBrand.cs" />
+    <Compile Include="Models\Product\BigCommerceStore.cs" />
+    <Compile Include="Models\Product\BigCommerceProductPrimaryImages.cs" />
     <Compile Include="Models\Throttling\BigCommerceLimits.cs" />
     <Compile Include="Models\BigCommerceResponse.cs" />
     <Compile Include="Models\Configuration\BigCommerceCommandConfig.cs" />

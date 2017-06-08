@@ -8,6 +8,8 @@
 		public static readonly BigCommerceCommand GetOrdersCount = new BigCommerceCommand( "/api/v2/orders/count.json" );
 		public static readonly BigCommerceCommand GetProductsCount = new BigCommerceCommand( "/api/v2/products/count.json" );
 		public static readonly BigCommerceCommand UpdateProduct = new BigCommerceCommand( "/api/v2/products/" );
+		public static readonly BigCommerceCommand GetStore = new BigCommerceCommand( "/api/v2/store.json" );
+		public static readonly BigCommerceCommand GetBrands = new BigCommerceCommand( "/api/v2/brands.json" );
 
 		private BigCommerceCommand( string command )
 		{
