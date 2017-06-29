@@ -39,7 +39,7 @@ namespace BigCommerceAccessTests.Products
 		public void GetProductsV2()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV2 );
-			var products = service.GetProducts();
+			var products = service.GetProducts( true );
 
 			products.Count().Should().BeGreaterThan( 0 );
 		}
@@ -48,7 +48,7 @@ namespace BigCommerceAccessTests.Products
 		public async Task GetProductsV2Async()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV2 );
-			var products = await service.GetProductsAsync( CancellationToken.None );
+			var products = await service.GetProductsAsync( CancellationToken.None, true );
 
 			products.Count().Should().BeGreaterThan( 0 );
 		}
