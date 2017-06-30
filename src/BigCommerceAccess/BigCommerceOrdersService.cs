@@ -72,7 +72,7 @@ namespace BigCommerceAccess
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var ordersWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_1, compositeEndpoint, marker ) );
+					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_OAuth, compositeEndpoint, marker ) );
 				this.CreateApiDelay( ordersWithinPage.Limits ).Wait(); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -124,7 +124,7 @@ namespace BigCommerceAccess
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_1, compositeEndpoint, marker ) );
+					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_OAuth, compositeEndpoint, marker ) );
 				await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
 
 				if( ordersWithinPage.Response == null )

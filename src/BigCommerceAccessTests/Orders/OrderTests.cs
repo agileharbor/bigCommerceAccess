@@ -23,15 +23,17 @@ namespace BigCommerceAccessTests.Orders
 		[ SetUp ]
 		public void Init()
 		{
-			//NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
-			//const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
+			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
-			//var cc = new CsvContext();
-			//var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
+			var cc = new CsvContext();
+			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
 
-			//if( testConfig != null )
-			this.ConfigV2 = new BigCommerceConfig( "store-lgq8il", "skuvault", "47666818d2389afc328cff8122ecca1fac2c1096" );
-			this.ConfigV3 = new BigCommerceConfig( "lgq8il", "62i8xn71zolhblanc26m2ypvmqracu6", "52ivu0055fe6thtmjo65chsjtzob0b4", "fvwxwex323rhjvb7h1ttuys365xbck" );
+			if( testConfig != null )
+			{
+				this.ConfigV2 = new BigCommerceConfig( testConfig.ShopName, testConfig.UserName, testConfig.ApiKey );
+				this.ConfigV3 = new BigCommerceConfig( testConfig.ShortShopName, testConfig.ClientId, testConfig.ClientSecret, testConfig.Token );
+			}
 		}
 
 		[ Test ]

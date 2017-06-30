@@ -12,13 +12,15 @@
 		public static readonly BigCommerceCommand GetStoreV2 = new BigCommerceCommand( "/api/v2/store.json" );
 		public static readonly BigCommerceCommand GetBrandsV2 = new BigCommerceCommand( "/api/v2/brands.json" );
 
-		public static readonly BigCommerceCommand GetProductsV2_1 = new BigCommerceCommand( "/v2/products" );
-		public static readonly BigCommerceCommand GetOrdersV2_1 = new BigCommerceCommand( "/v2/orders" );
-		public static readonly BigCommerceCommand GetOrdersCountV2_1 = new BigCommerceCommand( "/v2/orders/count" );
-		public static readonly BigCommerceCommand GetProductsCountV2_1 = new BigCommerceCommand( "/v2/products/count" );
-		public static readonly BigCommerceCommand UpdateProductV2_1 = new BigCommerceCommand( "/v2/products/" );
+		public static readonly BigCommerceCommand GetProductsV2_OAuth = new BigCommerceCommand( "/v2/products" );
+		public static readonly BigCommerceCommand GetOrdersV2_OAuth = new BigCommerceCommand( "/v2/orders" );
+		public static readonly BigCommerceCommand GetOrdersCountV2_OAuth = new BigCommerceCommand( "/v2/orders/count" );
+		public static readonly BigCommerceCommand GetProductsCountV2_OAuth = new BigCommerceCommand( "/v2/products/count" );
+		public static readonly BigCommerceCommand UpdateProductV2_OAuth = new BigCommerceCommand( "/v2/products/" );
+		public static readonly BigCommerceCommand GetStoreV2_OAuth = new BigCommerceCommand( "/v2/store" );
+		public static readonly BigCommerceCommand GetBrandsV2_OAuth = new BigCommerceCommand( "/v2/brands" );
 
-		public static readonly BigCommerceCommand GetProductsInfoV3 = new BigCommerceCommand("/v3/catalog/products");
+		public static readonly BigCommerceCommand GetProductsInfoV3 = new BigCommerceCommand( "/v3/catalog/products" );
 
 		private BigCommerceCommand( string command )
 		{
