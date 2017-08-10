@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.Serialization;
 using BigCommerceAccess.Models.Address;
 
@@ -38,6 +39,18 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "is_deleted" ) ]
 		public bool IsDeleted{ get; set; }
 
+		[ DataMember( Name = "base_shipping_cost" ) ]
+		public string BaseShippingCost{ get; set; }
+
+		[ DataMember( Name = "base_handling_cost" ) ]
+		public string BaseHandlingCost{ get; set; }
+
+		[ DataMember( Name = "base_wrapping_cost" ) ]
+		public string BaseWrappingCost{ get; set; }
+
+		private List< BigCommerceOrderProduct > _products;
+		private List< BigCommerceShippingAddress > _shippingAddresses;
+
 		public List< BigCommerceOrderProduct > Products
 		{
 			get { return this._products; }
@@ -68,8 +81,21 @@ namespace BigCommerceAccess.Models.Order
 			get { return ( BigCommerceOrderStatusEnum )this.StatusId; }
 		}
 
-		private List< BigCommerceOrderProduct > _products;
-		private List< BigCommerceShippingAddress > _shippingAddresses;
+		public decimal ShippingCharge
+		{
+			get
+			{
+				decimal baseShippingCost;
+				decimal.TryParse( this.BaseShippingCost, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseShippingCost );
+
+				decimal baseHandlingCost;
+				decimal.TryParse( this.BaseHandlingCost, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseHandlingCost );
+
+				decimal baseWrappingCost;
+				decimal.TryParse( this.BaseWrappingCost, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseWrappingCost );
+				return baseShippingCost + baseHandlingCost + baseWrappingCost;
+			}
+		}
 
 		public BigCommerceOrder()
 		{
