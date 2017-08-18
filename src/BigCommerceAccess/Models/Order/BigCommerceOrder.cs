@@ -39,14 +39,14 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "is_deleted" ) ]
 		public bool IsDeleted{ get; set; }
 
-		[ DataMember( Name = "base_shipping_cost" ) ]
-		public string BaseShippingCost{ get; set; }
+		[ DataMember( Name = "shipping_cost_ex_tax" ) ]
+		public string ShippingCostExTax{ get; set; }
 
-		[ DataMember( Name = "base_handling_cost" ) ]
-		public string BaseHandlingCost{ get; set; }
+		[ DataMember( Name = "handling_cost_ex_tax" ) ]
+		public string HandlingCostExTax{ get; set; }
 
-		[ DataMember( Name = "base_wrapping_cost" ) ]
-		public string BaseWrappingCost{ get; set; }
+		[ DataMember( Name = "wrapping_cost_ex_tax" ) ]
+		public string WrappingCostExTax{ get; set; }
 
 		private List< BigCommerceOrderProduct > _products;
 		private List< BigCommerceShippingAddress > _shippingAddresses;
@@ -86,13 +86,13 @@ namespace BigCommerceAccess.Models.Order
 			get
 			{
 				decimal baseShippingCost;
-				decimal.TryParse( this.BaseShippingCost, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseShippingCost );
+				decimal.TryParse( this.ShippingCostExTax, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseShippingCost );
 
 				decimal baseHandlingCost;
-				decimal.TryParse( this.BaseHandlingCost, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseHandlingCost );
+				decimal.TryParse( this.HandlingCostExTax, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseHandlingCost );
 
 				decimal baseWrappingCost;
-				decimal.TryParse( this.BaseWrappingCost, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseWrappingCost );
+				decimal.TryParse( this.WrappingCostExTax, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseWrappingCost );
 				return baseShippingCost + baseHandlingCost + baseWrappingCost;
 			}
 		}
