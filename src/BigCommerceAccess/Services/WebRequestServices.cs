@@ -368,7 +368,7 @@ namespace BigCommerceAccess.Services
 
 		public static void SetSecurityProtocol()
 		{
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 		}
 		#endregion
 	}
