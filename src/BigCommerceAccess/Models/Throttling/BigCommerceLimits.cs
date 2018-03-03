@@ -3,10 +3,10 @@
 	internal class BigCommerceLimits: IBigCommerceRateLimits
 	{
 		private const int UnlimitCnt = 100000;
-		public int CallsRemaining{ get; }
+		public int CallsRemaining{ get; private set; }
 
-		public int LimitRequestsLeft{ get; }
-		public int LimitTimeResetMs{ get; }
+		public int LimitRequestsLeft{ get; private set; }
+		public int LimitTimeResetMs{ get; private set; }
 
 		public bool IsUnlimitedCallsCount
 		{

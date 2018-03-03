@@ -230,7 +230,7 @@ namespace BigCommerceAccess
 						Weight = product.Weight,
 						BrandId = product.BrandId,
 						Quantity = product.Quantity,
-						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault()?.UrlStandard },
+						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
 							ProductId = x.ProductId,
@@ -289,7 +289,7 @@ namespace BigCommerceAccess
 						CostPrice = product.CostPrice,
 						Weight = product.Weight,
 						BrandId = product.BrandId,
-						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault()?.UrlStandard },
+						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
 							ProductId = x.ProductId,
