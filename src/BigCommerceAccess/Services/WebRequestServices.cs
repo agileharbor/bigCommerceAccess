@@ -239,7 +239,7 @@ namespace BigCommerceAccess.Services
 			{
 				var jsonResponse = reader.ReadToEnd();
 
-				var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
+				var remainingLimit = this.GetRemainingLimit( response );
 				var version = response.Headers.Get( "X-BC-Store-Version" );
 				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse, remainingLimit, version, marker );
 				var limits = this.ParseLimits( response );
@@ -277,9 +277,36 @@ namespace BigCommerceAccess.Services
 		{
 			var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
 			var callsRemaining = 0;
+
 			if( !string.IsNullOrWhiteSpace( remainingLimit ) )
+			{
 				int.TryParse( remainingLimit, out callsRemaining );
-			return new BigCommerceLimits( callsRemaining );
+				return new BigCommerceLimits( callsRemaining );
+			}
+
+			var limitRequestsLeftValue = 0;
+			var limitTimeResetMsValue = 0;
+
+			var limitRequestsLeft = response.Headers.Get( "X-Rate-Limit-Requests-Left" );
+			if( !string.IsNullOrWhiteSpace( limitRequestsLeft ) )
+				int.TryParse( limitRequestsLeft, out limitRequestsLeftValue );
+
+			var limitTimeResetMs = response.Headers.Get( "X-Rate-Limit-Time-Reset-Ms" );
+			if( !string.IsNullOrWhiteSpace( limitTimeResetMs ) )
+				int.TryParse( limitTimeResetMs, out limitTimeResetMsValue );
+
+			return new BigCommerceLimits( limitRequestsLeftValue, limitTimeResetMsValue );
+		}
+
+		private string GetRemainingLimit( WebResponse response )
+		{
+			var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
+			var limitRequestsLeft = response.Headers.Get( "X-Rate-Limit-Requests-Left" );
+
+			if( !string.IsNullOrEmpty( remainingLimit ) )
+				return remainingLimit;
+
+			return limitRequestsLeft;
 		}
 
 		private string CreateAuthenticationHeader()

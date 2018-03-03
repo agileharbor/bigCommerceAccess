@@ -21,7 +21,7 @@ namespace BigCommerceAccess
 
 		protected Task CreateApiDelay( IBigCommerceRateLimits limits, CancellationToken token )
 		{
-			return limits.IsUnlimitedCallsCount ? Task.FromResult( 0 ) : Task.Delay( this.DefaultApiDelay, token );
+			return limits.IsUnlimitedCallsCount ? Task.FromResult( 0 ) : Task.Delay( limits.LimitTimeResetMs != -1 ? TimeSpan.FromMilliseconds( limits.LimitTimeResetMs ) : this.DefaultApiDelay, token );
 		}
 
 		protected int CalculatePagesCount( int itemsCount )

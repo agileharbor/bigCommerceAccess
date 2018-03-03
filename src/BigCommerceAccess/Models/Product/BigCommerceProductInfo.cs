@@ -6,6 +6,9 @@ namespace BigCommerceAccess.Models.Product
 	[ DataContract ]
 	public class BigCommerceProductInfo
 	{
+		[ DataMember( Name = "id" ) ]
+		public int Id{ get; set; }
+
 		[ DataMember( Name = "name" ) ]
 		public string Name{ get; set; }
 
@@ -41,6 +44,12 @@ namespace BigCommerceAccess.Models.Product
 
 		[ DataMember( Name = "variants" ) ]
 		public List< BigCommerceVariant > Variants{ get; set; }
+
+		[ DataMember( Name = "inventory_tracking" ) ]
+		public string InventoryTracking{ get; set; }
+
+		[ DataMember( Name = "inventory_level" ) ]
+		public string Quantity{ get; set; }
 
 		public BigCommerceProductInfo()
 		{

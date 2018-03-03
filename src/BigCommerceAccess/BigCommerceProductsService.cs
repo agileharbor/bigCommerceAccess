@@ -199,10 +199,10 @@ namespace BigCommerceAccess
 			} );
 		}
 
-		private List< BigCommerceProductInfo > GetProductsInfo()
+		private List< BigCommerceProduct > GetProductsInfo( bool includeExtendInfo = false )
 		{
 			var mainEndpoint = "?include=variants";
-			var products = new List< BigCommerceProductInfo >();
+			var products = new List< BigCommerceProduct >();
 			var marker = this.GetMarker();
 
 			for( var i = 1; i < int.MaxValue; i++ )
@@ -215,18 +215,54 @@ namespace BigCommerceAccess
 				if( productsWithinPage.Response == null )
 					break;
 
-				products.AddRange( productsWithinPage.Response.Data );
+				foreach( var product in productsWithinPage.Response.Data )
+					products.Add( new BigCommerceProduct
+					{
+						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						Upc = product.Upc,
+						Sku = product.Sku,
+						Name = product.Name,
+						Description = product.Description,
+						Price = product.Price,
+						SalePrice = product.SalePrice,
+						RetailPrice = product.RetailPrice,
+						CostPrice = product.CostPrice,
+						Weight = product.Weight,
+						BrandId = product.BrandId,
+						Quantity = product.Quantity,
+						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault()?.UrlStandard },
+						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
+						{
+							ProductId = x.ProductId,
+							Sku = x.Sku,
+							Quantity = x.Quantity,
+							Upc = x.Upc,
+							Price = x.Price,
+							//AdjustedPrice = x.AdjustedPrice,
+							CostPrice = x.CostPrice,
+							Weight = x.Weight,
+							//AdjustedWeight = x.AdjustedWeight,
+							ImageFile = x.ImageUrl
+						} ).ToList()
+					} );
+
 				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
 					break;
+			}
+
+			if( includeExtendInfo )
+			{
+				this.FillWeightUnitV3( products, marker );
+				this.FillBrandsV3( products, marker );
 			}
 
 			return products;
 		}
 		
-		private async Task< List< BigCommerceProductInfo > > GetProductsInfoAsync( CancellationToken token )
+		private async Task< List< BigCommerceProduct > > GetProductsInfoAsync( CancellationToken token, bool includeExtendInfo = false )
 		{
 			var mainEndpoint = "?include=variants";
-			var products = new List< BigCommerceProductInfo >();
+			var products = new List< BigCommerceProduct >();
 			var marker = this.GetMarker();
 
 			for( var i = 1; i < int.MaxValue; i++ )
@@ -239,9 +275,42 @@ namespace BigCommerceAccess
 				if( productsWithinPage.Response == null )
 					break;
 
-				products.AddRange( productsWithinPage.Response.Data );
+				foreach( var product in productsWithinPage.Response.Data )
+					products.Add( new BigCommerceProduct
+					{
+						Id = product.Id,
+						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						Upc = product.Upc,
+						Name = product.Name,
+						Description = product.Description,
+						Price = product.Price,
+						SalePrice = product.SalePrice,
+						RetailPrice = product.RetailPrice,
+						CostPrice = product.CostPrice,
+						Weight = product.Weight,
+						BrandId = product.BrandId,
+						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault()?.UrlStandard },
+						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
+						{
+							ProductId = x.ProductId,
+							Upc = x.Upc,
+							Price = x.Price,
+							//AdjustedPrice = x.AdjustedPrice,
+							CostPrice = x.CostPrice,
+							Weight = x.Weight,
+							//AdjustedWeight = x.AdjustedWeight,
+							ImageFile = x.ImageUrl
+						} ).ToList()
+					} );
+
 				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
 					break;
+			}
+
+			if( includeExtendInfo )
+			{
+				await this.FillWeightUnitV3Async( products, token, marker );
+				await this.FillBrandsV3Async( products, token, marker );
 			}
 
 			return products;
