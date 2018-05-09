@@ -9,6 +9,7 @@ namespace BigCommerceAccess
 	{
 		List< BigCommerceProduct > GetProducts( bool includeExtendInfo = false );
 		Task< List< BigCommerceProduct > > GetProductsAsync( CancellationToken token, bool includeExtendInfo = false );
+		Task< List< BigCommerceProduct > > GetProducts2Async( CancellationToken token, bool includeExtendInfo = false );
 
 		void UpdateProducts( List< BigCommerceProduct > products );
 		Task UpdateProductsAsync( List< BigCommerceProduct > products, CancellationToken token );

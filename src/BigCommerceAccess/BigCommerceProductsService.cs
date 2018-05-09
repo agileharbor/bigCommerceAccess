@@ -37,6 +37,11 @@ namespace BigCommerceAccess
 			return this._apiVersion == APIVersion.V2 ? this.GetProductsV2Async( token, includeExtendInfo ) : this.GetProductsV3Async( token, includeExtendInfo );
 		}
 
+		public Task< List< BigCommerceProduct > > GetProducts2Async( CancellationToken token, bool includeExtendInfo = false )
+		{
+			return this._apiVersion == APIVersion.V2 ? this.GetProductsV2Async( token, includeExtendInfo ) : this.GetProductsInfoAsync( token, includeExtendInfo );
+		}
+
 		private List< BigCommerceProduct > GetProductsV2( bool includeExtendInfo = false )
 		{
 			var products = new List< BigCommerceProduct >();
@@ -198,7 +203,7 @@ namespace BigCommerceAccess
 				}
 			} );
 		}
-
+		
 		private List< BigCommerceProduct > GetProductsInfo( bool includeExtendInfo = false )
 		{
 			var mainEndpoint = "?include=variants";
@@ -261,7 +266,7 @@ namespace BigCommerceAccess
 		
 		private async Task< List< BigCommerceProduct > > GetProductsInfoAsync( CancellationToken token, bool includeExtendInfo = false )
 		{
-			var mainEndpoint = "?include=variants";
+			var mainEndpoint = "?include=variants,images";
 			var products = new List< BigCommerceProduct >();
 			var marker = this.GetMarker();
 
@@ -276,11 +281,15 @@ namespace BigCommerceAccess
 					break;
 
 				foreach( var product in productsWithinPage.Response.Data )
+				{
+					var inventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingV3Enum.none ) == InventoryTrackingV3Enum.product ? InventoryTrackingEnum.simple : product.InventoryTracking.ToEnum( InventoryTrackingV3Enum.none ) == InventoryTrackingV3Enum.variant ? InventoryTrackingEnum.sku : InventoryTrackingEnum.none;
+
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
-						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						InventoryTracking = inventoryTracking,
 						Upc = product.Upc,
+						Sku = product.Sku,
 						Name = product.Name,
 						Description = product.Description,
 						Price = product.Price,
@@ -289,19 +298,25 @@ namespace BigCommerceAccess
 						CostPrice = product.CostPrice,
 						Weight = product.Weight,
 						BrandId = product.BrandId,
-						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
-						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
-						{
-							ProductId = x.ProductId,
-							Upc = x.Upc,
-							Price = x.Price,
-							//AdjustedPrice = x.AdjustedPrice,
-							CostPrice = x.CostPrice,
-							Weight = x.Weight,
-							//AdjustedWeight = x.AdjustedWeight,
-							ImageFile = x.ImageUrl
-						} ).ToList()
+						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlThumbnail : string.Empty },
+						Quantity = product.Quantity,
+						ProductOptions = inventoryTracking == InventoryTrackingEnum.sku
+							? product.Variants.Select( x => new BigCommerceProductOption
+							{
+								ProductId = x.ProductId,
+								Upc = x.Upc,
+								Sku = x.Sku,
+								Price = x.Price,
+								//AdjustedPrice = x.AdjustedPrice,
+								CostPrice = x.CostPrice,
+								Weight = x.Weight,
+								//AdjustedWeight = x.AdjustedWeight,
+								ImageFile = x.ImageUrl,
+								Quantity = x.Quantity
+							} ).ToList()
+							: new List< BigCommerceProductOption >()
 					} );
+				}
 
 				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
 					break;

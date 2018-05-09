@@ -18,4 +18,11 @@ namespace BigCommerceAccess.Models.Product
 		simple,
 		sku
 	}
+
+	public enum InventoryTrackingV3Enum
+	{
+		none,
+		product,
+		variant
+	}
 }
