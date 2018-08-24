@@ -67,9 +67,22 @@ namespace BigCommerceAccessTests.Orders
 		public async Task GetOrdersV3Async()
 		{
 			var service = this.BigCommerceFactory.CreateOrdersService( this.ConfigV3 );
-			var orders = await service.GetOrdersAsync( DateTime.UtcNow.AddMonths( -6 ), DateTime.UtcNow, CancellationToken.None );
+			var orders = await service.GetOrdersAsync( new DateTime( 2018, 08, 16, 00, 16, 00, DateTimeKind.Utc ), new DateTime( 2018, 08, 16, 00, 16, 59, DateTimeKind.Utc ), CancellationToken.None );
 
 			orders.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
+		public async Task GetOrderV3Async()
+		{
+			var service = this.BigCommerceFactory.CreateOrdersService( this.ConfigV3 );
+			var order = await service.GetOrderAsync( 9648, CancellationToken.None );
+			
+			order.Should().NotBeNull();
+
+			var createdDate = order.DateCreated.ToUniversalTime();
+			var modified = order.DateModified.ToUniversalTime();
+			var shipped = order.DateShipped.Value.ToUniversalTime();
 		}
 
 		[ Test ]

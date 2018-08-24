@@ -142,6 +142,50 @@ namespace BigCommerceAccess
 
 		#endregion
 
+		#region Orders
+		public Task< BigCommerceOrder > GetOrderAsync( int orderId, CancellationToken token )
+		{
+			return this._apiVersion == APIVersion.V2 ? this.GetOrderForV2Async( orderId, token ) : this.GetOrderForV3Async( orderId, token );
+		}
+
+		private async Task< BigCommerceOrder > GetOrderForV2Async( int orderId, CancellationToken token )
+		{
+			var mainEndpoint = ParamsBuilder.CreateOrderParams( orderId );
+			var marker = this.GetMarker();
+
+			var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
+				await this._webRequestServices.GetResponseAsync< BigCommerceOrder >( BigCommerceCommand.GetOrdersV2, mainEndpoint, marker ) );
+			await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
+
+			if( ordersWithinPage.Response == null )
+				return null;
+
+			await this.GetOrderProductsAsync( ordersWithinPage.Response, token, marker );
+			await this.GetOrderShippingAddressesAsync( ordersWithinPage.Response, token, marker );
+
+			return ordersWithinPage.Response;
+		}
+
+		private async Task< BigCommerceOrder > GetOrderForV3Async( int orderId, CancellationToken token )
+		{
+			var mainEndpoint = ParamsBuilder.CreateOrderParams( orderId );
+			var marker = this.GetMarker();
+
+			var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
+				await this._webRequestServices.GetResponseAsync< BigCommerceOrder >( BigCommerceCommand.GetOrdersV2_OAuth, mainEndpoint, marker ) );
+			await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
+
+			if( ordersWithinPage.Response == null )
+				return null;
+
+			await this.GetOrderProductsAsync( ordersWithinPage.Response, token, marker );
+			await this.GetOrderShippingAddressesAsync( ordersWithinPage.Response, token, marker );
+
+			return ordersWithinPage.Response;
+		}
+
+		#endregion
+
 		#region Order products
 		private void GetOrdersProducts( IEnumerable< BigCommerceOrder > orders, string marker )
 		{
@@ -168,20 +212,25 @@ namespace BigCommerceAccess
 			var threadCount = isUnlimit ? MaxThreadsCount : 1;
 			await orders.DoInBatchAsync( threadCount, async order =>
 			{
-				for( var i = 1; i < int.MaxValue; i++ )
-				{
-					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var products = await ActionPolicies.GetAsync.Get( async () =>
-						await this._webRequestServices.GetResponseAsync< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
-					await this.CreateApiDelay( products.Limits, token ); //API requirement
-
-					if( products.Response == null )
-						break;
-					order.Products.AddRange( products.Response );
-					if( products.Response.Count < RequestMaxLimit )
-						break;
-				}
+				await this.GetOrderProductsAsync( order, token, marker );
 			} );
+		}
+
+		private async Task GetOrderProductsAsync( BigCommerceOrder order, CancellationToken token, string marker )
+		{
+			for( var i = 1; i < int.MaxValue; i++ )
+			{
+				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+				var products = await ActionPolicies.GetAsync.Get( async () =>
+					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
+				await this.CreateApiDelay( products.Limits, token ); //API requirement
+
+				if( products.Response == null )
+					break;
+				order.Products.AddRange( products.Response );
+				if( products.Response.Count < RequestMaxLimit )
+					break;
+			}
 		}
 		#endregion
 		
@@ -202,11 +251,16 @@ namespace BigCommerceAccess
 			var threadCount = isUnlimit ? MaxThreadsCount : 1;
 			await orders.DoInBatchAsync( threadCount, async order =>
 			{
-				var addresses = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
-				order.ShippingAddresses = addresses.Response;
-				await this.CreateApiDelay( addresses.Limits, token ); //API requirement
+				await this.GetOrderShippingAddressesAsync( order, token, marker );
 			} );
+		}
+
+		private async Task GetOrderShippingAddressesAsync( BigCommerceOrder order, CancellationToken token, string marker )
+		{
+			var addresses = await ActionPolicies.GetAsync.Get( async () =>
+				await this._webRequestServices.GetResponseAsync< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
+			order.ShippingAddresses = addresses.Response;
+			await this.CreateApiDelay( addresses.Limits, token ); //API requirement
 		}
 		#endregion
 	}

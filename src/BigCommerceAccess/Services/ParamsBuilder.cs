@@ -9,6 +9,12 @@ namespace BigCommerceAccess.Services
 	{
 		public static readonly string EmptyParams = string.Empty;
 
+		public static string CreateOrderParams( int orderId )
+		{
+			var endpoint = string.Format( "/{0}", orderId );
+			return endpoint;
+		}
+
 		public static string CreateOrdersParams( DateTime startDate, DateTime endDate )
 		{
 			var endpoint = string.Format( "?{0}={1}&{2}={3}",
