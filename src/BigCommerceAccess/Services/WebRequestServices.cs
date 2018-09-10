@@ -276,16 +276,15 @@ namespace BigCommerceAccess.Services
 		private IBigCommerceRateLimits ParseLimits( WebResponse response )
 		{
 			var remainingLimit = response.Headers.Get( "X-BC-ApiLimit-Remaining" );
-			var callsRemaining = 0;
+			var callsRemaining = -1;
 
 			if( !string.IsNullOrWhiteSpace( remainingLimit ) )
 			{
 				int.TryParse( remainingLimit, out callsRemaining );
-				return new BigCommerceLimits( callsRemaining );
 			}
 
-			var limitRequestsLeftValue = 0;
-			var limitTimeResetMsValue = 0;
+			var limitRequestsLeftValue = -1;
+			var limitTimeResetMsValue = -1;
 
 			var limitRequestsLeft = response.Headers.Get( "X-Rate-Limit-Requests-Left" );
 			if( !string.IsNullOrWhiteSpace( limitRequestsLeft ) )
@@ -295,7 +294,7 @@ namespace BigCommerceAccess.Services
 			if( !string.IsNullOrWhiteSpace( limitTimeResetMs ) )
 				int.TryParse( limitTimeResetMs, out limitTimeResetMsValue );
 
-			return new BigCommerceLimits( limitRequestsLeftValue, limitTimeResetMsValue );
+			return new BigCommerceLimits( callsRemaining, limitRequestsLeftValue, limitTimeResetMsValue );
 		}
 
 		private string GetRemainingLimit( WebResponse response )

@@ -22,17 +22,17 @@ namespace BigCommerceAccessTests.Products
 		[ SetUp ]
 		public void Init()
 		{
-			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
-			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
+			//NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			//const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
-			var cc = new CsvContext();
-			var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
+			//var cc = new CsvContext();
+			//var testConfig = cc.Read< TestConfig >( credentialsFilePath, new CsvFileDescription { FirstLineHasColumnNames = true, IgnoreUnknownColumns = true } ).FirstOrDefault();
 
-			if( testConfig != null )
-			{
-				this.ConfigV2 = new BigCommerceConfig( testConfig.ShopName, testConfig.UserName, testConfig.ApiKey );
-				this.ConfigV3 = new BigCommerceConfig( testConfig.ShortShopName, testConfig.ClientId, testConfig.ClientSecret, testConfig.Token );
-			}
+			//if( testConfig != null )
+			//{
+				this.ConfigV2 = new BigCommerceConfig("store-lgq8il", "skuvault", "47666818d2389afc328cff8122ecca1fac2c1096");
+				this.ConfigV3 = new BigCommerceConfig("lgq8il", "3ofejydbs1mehg5kzhybc4elb3i2kfg", "rgypnvuuzp2rq49k4o1ysd5b559qwsl", "4x8p83ycf0hof0yjh5ocpdbtpiqw75w");
+			//}
 		}
 
 		[ Test ]

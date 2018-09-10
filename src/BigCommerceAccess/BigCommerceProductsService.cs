@@ -518,7 +518,7 @@ namespace BigCommerceAccess
 		{
 			var marker = this.GetMarker();
 
-			foreach( var product in products )
+			await products.DoInBatchAsync( 20, async product =>
 			{
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
@@ -527,14 +527,14 @@ namespace BigCommerceAccess
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductV2, endpoint, jsonContent, marker ) );
 
 				await this.CreateApiDelay( limit, token ); //API requirement
-			}
+			} );
 		}
 
 		private async Task UpdateProductsV3Async( List< BigCommerceProduct > products, CancellationToken token )
 		{
 			var marker = this.GetMarker();
 
-			foreach( var product in products )
+			await products.DoInBatchAsync( 20, async product =>
 			{
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
@@ -543,7 +543,7 @@ namespace BigCommerceAccess
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductV2_OAuth, endpoint, jsonContent, marker ) );
 
 				await this.CreateApiDelay( limit, token ); //API requirement
-			}
+			} );
 		}
 
 		public void UpdateProductOptions( List< BigCommerceProductOption > productOptions )
@@ -593,7 +593,7 @@ namespace BigCommerceAccess
 		{
 			var marker = this.GetMarker();
 
-			foreach( var option in productOptions )
+			await productOptions.DoInBatchAsync( 20, async option =>
 			{
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
 				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
@@ -601,14 +601,14 @@ namespace BigCommerceAccess
 				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductV2, endpoint, jsonContent, marker ) );
 				await this.CreateApiDelay( limit, token ); //API requirement
-			}
+			} );
 		}
 
 		public async Task UpdateProductOptionsV3Async( List< BigCommerceProductOption > productOptions, CancellationToken token )
 		{
 			var marker = this.GetMarker();
 
-			foreach( var option in productOptions )
+			await productOptions.DoInBatchAsync( 20, async option =>
 			{
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
 				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
@@ -616,7 +616,7 @@ namespace BigCommerceAccess
 				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductV2_OAuth, endpoint, jsonContent, marker ) );
 				await this.CreateApiDelay( limit, token ); //API requirement
-			}
+			} );
 		}
 		#endregion
 	}

@@ -12,23 +12,19 @@
 		{
 			get
 			{
+				if( this.CallsRemaining != -1 && this.LimitRequestsLeft != -1 )
+					return this.CallsRemaining > UnlimitCnt && this.LimitRequestsLeft > 20;
+
 				if( this.CallsRemaining != -1 )
 					return this.CallsRemaining > UnlimitCnt;
 
-				return this.LimitRequestsLeft > 10;
+				return this.LimitRequestsLeft > 20;
 			}
 		}
 
-		public BigCommerceLimits( int callsRemaining )
+		public BigCommerceLimits( int callsRemaining = -1, int limitRequestsLeft = -1, int limitTimeResetMs = -1 )
 		{
 			this.CallsRemaining = callsRemaining;
-			this.LimitRequestsLeft = -1;
-			this.LimitTimeResetMs = -1;
-		}
-
-		public BigCommerceLimits( int limitRequestsLeft, int limitTimeResetMs )
-		{
-			this.CallsRemaining = -1;
 			this.LimitRequestsLeft = limitRequestsLeft;
 			this.LimitTimeResetMs = limitTimeResetMs;
 		}
