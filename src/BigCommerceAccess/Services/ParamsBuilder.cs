@@ -42,6 +42,16 @@ namespace BigCommerceAccess.Services
 			return endpoint;
 		}
 
+		public static string GetFieldsForProductSync()
+		{
+			return "&include=id,inventory_level,sku,inventory_tracking,skus,upc,name,description,price,sale_price,retail_price,cost_price,weight,brand_id,primary_image";
+		}
+
+		public static string GetFieldsForInventorySync()
+		{
+			return "&include=id,inventory_level,sku,upc,inventory_tracking,skus";
+		}
+
 		public static string ConcatParams( this string mainEndpoint, params string[] endpoints )
 		{
 			var result = new StringBuilder( mainEndpoint );

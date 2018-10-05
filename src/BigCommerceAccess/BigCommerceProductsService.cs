@@ -36,7 +36,8 @@ namespace BigCommerceAccess
 		{
 			return this._apiVersion == APIVersion.V2 ? this.GetProductsV2Async( token, includeExtendInfo ) : this.GetProductsV3Async( token, includeExtendInfo );
 		}
-
+		
+		// Obsolete : our clients shouldn't use it already
 		private List< BigCommerceProduct > GetProductsV2( bool includeExtendInfo = false )
 		{
 			var products = new List< BigCommerceProduct >();
@@ -67,6 +68,7 @@ namespace BigCommerceAccess
 			return products;
 		}
 
+		// Obsolete : our clients shouldn't use it already
 		private async Task< List< BigCommerceProduct > > GetProductsV2Async( CancellationToken token, bool includeExtendInfo = false )
 		{
 			var products = new List< BigCommerceProduct >();
@@ -105,6 +107,7 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+				endpoint += includeExtendInfo ? ParamsBuilder.GetFieldsForProductSync() : ParamsBuilder.GetFieldsForInventorySync();
 				var productsWithinPage = ActionPolicies.Get.Get( () =>
 					this._webRequestServices.GetResponse< List< BigCommerceProduct > >( BigCommerceCommand.GetProductsV2_OAuth, endpoint, marker ) );
 				this.CreateApiDelay( productsWithinPage.Limits ).Wait(); //API requirement
@@ -135,6 +138,7 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+				endpoint += includeExtendInfo ? ParamsBuilder.GetFieldsForProductSync() : ParamsBuilder.GetFieldsForInventorySync();
 				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProductsV2_OAuth, endpoint, marker ) );
 				await this.CreateApiDelay( productsWithinPage.Limits, token ); //API requirement
