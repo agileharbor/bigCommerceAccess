@@ -118,6 +118,8 @@ namespace BigCommerceAccess.Models.Order
 		AwaitingShipment,
 		Completed,
 		AwaitingFulfillment,
-		ManualVerificationRequired
+		ManualVerificationRequired,
+		Disputed,
+		PartiallyRefunded
 	}
 }
