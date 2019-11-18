@@ -20,7 +20,8 @@
 		public static readonly BigCommerceCommand GetStoreV2_OAuth = new BigCommerceCommand( "/v2/store" );
 		public static readonly BigCommerceCommand GetBrandsV2_OAuth = new BigCommerceCommand( "/v2/brands" );
 
-		public static readonly BigCommerceCommand GetProductsInfoV3 = new BigCommerceCommand( "/v3/catalog/products" );
+		public static readonly BigCommerceCommand GetProductsV3 = new BigCommerceCommand( "/v3/catalog/products" );
+		public static readonly BigCommerceCommand UpdateProductsV3 = new BigCommerceCommand( "/v3/catalog/products" );
 
 		private BigCommerceCommand( string command )
 		{
