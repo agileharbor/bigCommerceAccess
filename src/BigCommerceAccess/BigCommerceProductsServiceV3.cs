@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
@@ -9,7 +7,6 @@ using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
 using BigCommerceAccess.Services;
-using CuttingEdge.Conditions;
 using Netco.Extensions;
 using ServiceStack;
 
@@ -17,13 +14,8 @@ namespace BigCommerceAccess
 {
 	sealed class BigCommerceProductsServiceV3 : BigCommerceBaseProductsService, IBigCommerceProductsService
 	{
-		private readonly BigCommerceProductsServiceV2OAuth _productsServiceV2OAuth;
-
-		public BigCommerceProductsServiceV3( WebRequestServices services, BigCommerceProductsServiceV2OAuth productsServiceV2OAuth ) : base( services )
+		public BigCommerceProductsServiceV3( WebRequestServices services ) : base( services )
 		{
-			Condition.Requires( productsServiceV2OAuth, "_productsServiceV2OAuth" ).IsNotNull();
-
-			this._productsServiceV2OAuth = productsServiceV2OAuth;
 		}
 
 		#region Get
@@ -80,8 +72,8 @@ namespace BigCommerceAccess
 
 			if( includeExtendedInfo )
 			{
-				this._productsServiceV2OAuth.FillWeightUnit( products, marker );
-				this._productsServiceV2OAuth.FillBrands( products, marker );
+				base.FillWeightUnit( products, marker );
+				base.FillBrands( products, marker );
 			}
 
 			return products;
@@ -135,8 +127,8 @@ namespace BigCommerceAccess
 
 			if( includeExtendedInfo )
 			{
-				await this._productsServiceV2OAuth.FillWeightUnitAsync( products, token, marker );
-				await this._productsServiceV2OAuth.FillBrandsAsync( products, token, marker );
+				await base.FillWeightUnitAsync( products, token, marker );
+				await base.FillBrandsAsync( products, token, marker );
 			}
 
 			return products;
