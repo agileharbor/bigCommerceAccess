@@ -99,6 +99,7 @@ namespace BigCommerceAccess
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
+						Sku = product.Sku,
 						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
 						Upc = product.Upc,
 						Name = product.Name,
@@ -113,6 +114,7 @@ namespace BigCommerceAccess
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
 							ProductId = x.ProductId,
+							Sku = x.Sku,
 							Upc = x.Upc,
 							Price = x.Price,
 							CostPrice = x.CostPrice,
