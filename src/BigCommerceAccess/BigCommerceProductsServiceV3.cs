@@ -14,6 +14,8 @@ namespace BigCommerceAccess
 {
 	sealed class BigCommerceProductsServiceV3 : BigCommerceBaseProductsService, IBigCommerceProductsService
 	{
+		private const string _inventoryTrackingByOption = "variant";
+
 		public BigCommerceProductsServiceV3( WebRequestServices services ) : base( services )
 		{
 		}
@@ -39,7 +41,7 @@ namespace BigCommerceAccess
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
-						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum( product.InventoryTracking ),
 						Upc = product.Upc,
 						Sku = product.Sku,
 						Name = product.Name,
@@ -100,7 +102,7 @@ namespace BigCommerceAccess
 					{
 						Id = product.Id,
 						Sku = product.Sku,
-						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum( product.InventoryTracking ),
 						Upc = product.Upc,
 						Name = product.Name,
 						Description = product.Description,
@@ -110,11 +112,14 @@ namespace BigCommerceAccess
 						CostPrice = product.CostPrice,
 						Weight = product.Weight,
 						BrandId = product.BrandId,
+						Quantity = product.Quantity,
 						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
+							Id = x.Id,
 							ProductId = x.ProductId,
 							Sku = x.Sku,
+							Quantity = x.Quantity,
 							Upc = x.Upc,
 							Price = x.Price,
 							CostPrice = x.CostPrice,
@@ -199,6 +204,23 @@ namespace BigCommerceAccess
 			} );
 		}
 
+		#endregion
+
+		#region Misc
+		private InventoryTrackingEnum ToCompatibleWithV2InventoryTrackingEnum( string inventoryTracking )
+		{
+			if ( string.IsNullOrWhiteSpace( inventoryTracking ) )
+			{
+				return InventoryTrackingEnum.none;
+			}
+
+			if ( inventoryTracking.Equals( _inventoryTrackingByOption ) )
+			{
+				return InventoryTrackingEnum.sku;
+			}
+
+			return InventoryTrackingEnum.simple;
+		}
 		#endregion
 	}
 }

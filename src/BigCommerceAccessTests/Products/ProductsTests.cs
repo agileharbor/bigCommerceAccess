@@ -76,6 +76,22 @@ namespace BigCommerceAccessTests.Products
 		}
 
 		[ Test ]
+		public void ProductShouldHaveEnabledTrackingInventoryByProduct()
+		{
+			var product = this.GetProductBySkuV3( this.testProductSku );
+
+			product.InventoryTracking.Should().Be( InventoryTrackingEnum.simple );
+		}
+
+		[ Test ]
+		public void ProductShouldHaveEnabledTrackingInventoryByOption()
+		{
+			var product = this.GetProductBySkuV3( this.testProductWithOptionsSku );
+
+			product.InventoryTracking.Should().Be( InventoryTrackingEnum.sku );
+		}
+
+		[ Test ]
 		public void ProductsQuantityUpdatedV2()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV2 );
