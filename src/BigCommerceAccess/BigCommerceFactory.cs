@@ -1,4 +1,6 @@
 ﻿using BigCommerceAccess.Models.Configuration;
+using BigCommerceAccess.Services;
+using System;
 
 namespace BigCommerceAccess
 {
@@ -17,7 +19,16 @@ namespace BigCommerceAccess
 
 		public IBigCommerceProductsService CreateProductsService( BigCommerceConfig config )
 		{
-			return new BigCommerceProductsService( config );
+			var apiVersion = config.GetAPIVersion();
+			var marker = Guid.NewGuid().ToString();
+			var services = new WebRequestServices( config, marker );
+
+			if ( apiVersion == APIVersion.V2 )
+			{
+				return new BigCommerceProductsServiceV2( services );
+			}
+
+			return new BigCommerceProductsServiceV3( services, new BigCommerceProductsServiceV2OAuth( services ) );
 		}
 	}
 }
