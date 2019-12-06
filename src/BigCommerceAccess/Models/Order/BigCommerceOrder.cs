@@ -51,6 +51,15 @@ namespace BigCommerceAccess.Models.Order
 		private List< BigCommerceOrderProduct > _products;
 		private List< BigCommerceShippingAddress > _shippingAddresses;
 
+		[ DataMember( Name = "discount_amount" ) ]
+		public string DiscountAmountValue{ get; set; }
+
+		[ DataMember( Name = "total_tax" ) ]
+		public string TotalTaxValue{ get; set; }
+
+		[ DataMember( Name = "currency_code" ) ]
+		public string CurrencyCode{ get; set; }
+
 		public List< BigCommerceOrderProduct > Products
 		{
 			get { return this._products; }
@@ -94,6 +103,26 @@ namespace BigCommerceAccess.Models.Order
 				decimal baseWrappingCost;
 				decimal.TryParse( this.WrappingCostExTax, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out baseWrappingCost );
 				return baseShippingCost + baseHandlingCost + baseWrappingCost;
+			}
+		}
+
+		public decimal DiscountAmount
+		{
+			get
+			{	
+				decimal discountAmount;
+				decimal.TryParse( this.DiscountAmountValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out discountAmount );
+				return discountAmount;
+			}
+		}
+
+		public decimal TotalTax
+		{
+			get
+			{	
+				decimal totalTax;
+				decimal.TryParse( this.TotalTaxValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out totalTax );
+				return totalTax;
 			}
 		}
 
