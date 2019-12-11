@@ -78,7 +78,7 @@ namespace BigCommerceAccess
 			return products;
 		}
 
-		private void FillWeightUnit( IEnumerable< BigCommerceProduct > products, string marker )
+		protected override void FillWeightUnit( IEnumerable< BigCommerceProduct > products, string marker )
 		{
 			var store = ActionPolicies.Get.Get( () =>
 				this._webRequestServices.GetResponse< BigCommerceStore >( BigCommerceCommand.GetStoreV2, string.Empty, marker ) );
@@ -90,7 +90,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		private async Task FillWeightUnitAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
+		protected override async Task FillWeightUnitAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
 		{
 			var store = await ActionPolicies.GetAsync.Get( async () =>
 				await this._webRequestServices.GetResponseAsync< BigCommerceStore >( BigCommerceCommand.GetStoreV2, string.Empty, marker ) );
@@ -102,7 +102,7 @@ namespace BigCommerceAccess
 			}
 		}
 
-		private void FillBrands( IEnumerable< BigCommerceProduct > products, string marker )
+		protected override void FillBrands( IEnumerable< BigCommerceProduct > products, string marker )
 		{
 			var brands = new List< BigCommerceBrand >();
 			for( var i = 1; i < int.MaxValue; i++ )
@@ -123,7 +123,7 @@ namespace BigCommerceAccess
 			this.FillBrandsForProducts( products, brands );
 		}
 
-		private async Task FillBrandsAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
+		protected override async Task FillBrandsAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
 		{
 			var brands = new List< BigCommerceBrand >();
 			for( var i = 1; i < int.MaxValue; i++ )

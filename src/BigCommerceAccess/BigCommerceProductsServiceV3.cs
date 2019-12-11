@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
@@ -9,7 +7,6 @@ using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
 using BigCommerceAccess.Services;
-using CuttingEdge.Conditions;
 using Netco.Extensions;
 using ServiceStack;
 
@@ -17,13 +14,10 @@ namespace BigCommerceAccess
 {
 	sealed class BigCommerceProductsServiceV3 : BigCommerceBaseProductsService, IBigCommerceProductsService
 	{
-		private readonly BigCommerceProductsServiceV2OAuth _productsServiceV2OAuth;
+		private const string _inventoryTrackingByOption = "variant";
 
-		public BigCommerceProductsServiceV3( WebRequestServices services, BigCommerceProductsServiceV2OAuth productsServiceV2OAuth ) : base( services )
+		public BigCommerceProductsServiceV3( WebRequestServices services ) : base( services )
 		{
-			Condition.Requires( productsServiceV2OAuth, "_productsServiceV2OAuth" ).IsNotNull();
-
-			this._productsServiceV2OAuth = productsServiceV2OAuth;
 		}
 
 		#region Get
@@ -47,7 +41,7 @@ namespace BigCommerceAccess
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
-						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum( product.InventoryTracking ),
 						Upc = product.Upc,
 						Sku = product.Sku,
 						Name = product.Name,
@@ -80,8 +74,8 @@ namespace BigCommerceAccess
 
 			if( includeExtendedInfo )
 			{
-				this._productsServiceV2OAuth.FillWeightUnit( products, marker );
-				this._productsServiceV2OAuth.FillBrands( products, marker );
+				base.FillWeightUnit( products, marker );
+				base.FillBrands( products, marker );
 			}
 
 			return products;
@@ -107,7 +101,8 @@ namespace BigCommerceAccess
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
-						InventoryTracking = product.InventoryTracking.ToEnum( InventoryTrackingEnum.none ),
+						Sku = product.Sku,
+						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum( product.InventoryTracking ),
 						Upc = product.Upc,
 						Name = product.Name,
 						Description = product.Description,
@@ -117,10 +112,14 @@ namespace BigCommerceAccess
 						CostPrice = product.CostPrice,
 						Weight = product.Weight,
 						BrandId = product.BrandId,
+						Quantity = product.Quantity,
 						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
+							Id = x.Id,
 							ProductId = x.ProductId,
+							Sku = x.Sku,
+							Quantity = x.Quantity,
 							Upc = x.Upc,
 							Price = x.Price,
 							CostPrice = x.CostPrice,
@@ -135,8 +134,8 @@ namespace BigCommerceAccess
 
 			if( includeExtendedInfo )
 			{
-				await this._productsServiceV2OAuth.FillWeightUnitAsync( products, token, marker );
-				await this._productsServiceV2OAuth.FillBrandsAsync( products, token, marker );
+				await base.FillWeightUnitAsync( products, token, marker );
+				await base.FillBrandsAsync( products, token, marker );
 			}
 
 			return products;
@@ -205,6 +204,23 @@ namespace BigCommerceAccess
 			} );
 		}
 
+		#endregion
+
+		#region Misc
+		private InventoryTrackingEnum ToCompatibleWithV2InventoryTrackingEnum( string inventoryTracking )
+		{
+			if ( string.IsNullOrWhiteSpace( inventoryTracking ) )
+			{
+				return InventoryTrackingEnum.none;
+			}
+
+			if ( inventoryTracking.Equals( _inventoryTrackingByOption ) )
+			{
+				return InventoryTrackingEnum.sku;
+			}
+
+			return InventoryTrackingEnum.simple;
+		}
 		#endregion
 	}
 }

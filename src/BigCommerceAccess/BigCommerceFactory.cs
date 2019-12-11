@@ -28,7 +28,7 @@ namespace BigCommerceAccess
 				return new BigCommerceProductsServiceV2( services );
 			}
 
-			return new BigCommerceProductsServiceV3( services, new BigCommerceProductsServiceV2OAuth( services ) );
+			return new BigCommerceProductsServiceV3( services );
 		}
 	}
 }
