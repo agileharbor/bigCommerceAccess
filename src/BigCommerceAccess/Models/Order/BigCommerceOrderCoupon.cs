@@ -9,6 +9,9 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "code" ) ]
 		public string Code { get; set; }
 
+		[ DataMember( Name = "type" ) ]
+		public string Type { get; set; }
+
 		[ DataMember( Name = "discount" ) ]
 		public string DiscountValue { get; set; }
 		public decimal Discount
