@@ -60,6 +60,20 @@ namespace BigCommerceAccess.Models.Order
 		[ DataMember( Name = "currency_code" ) ]
 		public string CurrencyCode{ get; set; }
 
+		[ DataMember( Name = "coupons" ) ]
+		public BigCommerceReferenceObject CouponsReference{ get; set; }
+
+		private List< BigCommerceOrderCoupon > _coupons;
+		public List< BigCommerceOrderCoupon > Coupons
+		{
+			get { return this._coupons; }
+			set
+			{
+				if( value != null )
+					this._coupons = value;
+			}
+		}
+
 		public List< BigCommerceOrderProduct > Products
 		{
 			get { return this._products; }
@@ -129,6 +143,7 @@ namespace BigCommerceAccess.Models.Order
 		public BigCommerceOrder()
 		{
 			this._products = new List< BigCommerceOrderProduct >();
+			this._coupons = new List< BigCommerceOrderCoupon >();
 			this._shippingAddresses = new List< BigCommerceShippingAddress >();
 		}
 	}

@@ -53,6 +53,7 @@ namespace BigCommerceAccess
 					break;
 
 				this.GetOrdersProducts( ordersWithinPage.Response, marker );
+				this.GetOrdersCoupons( ordersWithinPage.Response, marker );
 				this.GetOrdersShippingAddresses( ordersWithinPage.Response, marker );
 				orders.AddRange( ordersWithinPage.Response );
 				if( ordersWithinPage.Response.Count < RequestMaxLimit )
@@ -79,6 +80,7 @@ namespace BigCommerceAccess
 					break;
 
 				this.GetOrdersProducts( ordersWithinPage.Response, marker );
+				this.GetOrdersCoupons( ordersWithinPage.Response, marker );
 				this.GetOrdersShippingAddresses( ordersWithinPage.Response, marker );
 				orders.AddRange( ordersWithinPage.Response );
 				if( ordersWithinPage.Response.Count < RequestMaxLimit )
@@ -105,6 +107,7 @@ namespace BigCommerceAccess
 					break;
 
 				await this.GetOrdersProductsAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				await this.GetOrdersCouponsAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
 				await this.GetOrdersShippingAddressesAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
 				orders.AddRange( ordersWithinPage.Response );
 				if( ordersWithinPage.Response.Count < RequestMaxLimit )
@@ -131,6 +134,7 @@ namespace BigCommerceAccess
 					break;
 
 				await this.GetOrdersProductsAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
+				await this.GetOrdersCouponsAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
 				await this.GetOrdersShippingAddressesAsync( ordersWithinPage.Response, ordersWithinPage.Limits.IsUnlimitedCallsCount, token, marker );
 				orders.AddRange( ordersWithinPage.Response );
 				if( ordersWithinPage.Response.Count < RequestMaxLimit )
@@ -179,6 +183,49 @@ namespace BigCommerceAccess
 						break;
 					order.Products.AddRange( products.Response );
 					if( products.Response.Count < RequestMaxLimit )
+						break;
+				}
+			} );
+		}
+		#endregion
+
+		#region Order Coupons
+		private void GetOrdersCoupons( IEnumerable< BigCommerceOrder > orders, string marker )
+		{
+			foreach( var order in orders )
+			{
+				for( var i = 1; i < int.MaxValue; i++ )
+				{
+					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+					var coupons = ActionPolicies.Get.Get( () =>
+						this._webRequestServices.GetResponse< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
+					this.CreateApiDelay( coupons.Limits ).Wait(); //API requirement
+
+					if( coupons.Response == null )
+						break;
+					order.Coupons.AddRange( coupons.Response );
+					if( coupons.Response.Count < RequestMaxLimit )
+						break;
+				}
+			}
+		}
+
+		private async Task GetOrdersCouponsAsync( IEnumerable< BigCommerceOrder > orders, bool isUnlimit, CancellationToken token, string marker )
+		{
+			var threadCount = isUnlimit ? MaxThreadsCount : 1;
+			await orders.DoInBatchAsync( threadCount, async order =>
+			{
+				for( var i = 1; i < int.MaxValue; i++ )
+				{
+					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
+					var coupons = await ActionPolicies.GetAsync.Get( async () =>
+						await this._webRequestServices.GetResponseAsync< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
+					await this.CreateApiDelay( coupons.Limits, token ); //API requirement
+
+					if( coupons.Response == null )
+						break;
+					order.Coupons.AddRange( coupons.Response );
+					if( coupons.Response.Count < RequestMaxLimit )
 						break;
 				}
 			} );
