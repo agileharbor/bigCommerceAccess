@@ -162,7 +162,7 @@ namespace BigCommerceAccess
 		{
 			var marker = this.GetMarker();
 
-			await productOptions.DoInBatchAsync( 20, async productOption =>
+			await productOptions.DoInBatchAsync( MaxThreadsCount, async productOption =>
 			{
 				var endpoint = string.Format("/{0}/variants/{1}", productOption.ProductId, productOption.Id );
 				var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
@@ -192,7 +192,7 @@ namespace BigCommerceAccess
 		{
 			var marker = this.GetMarker();
 
-			await products.DoInBatchAsync( 20, async product =>
+			await products.DoInBatchAsync( MaxThreadsCount, async product =>
 			{
 				var endpoint = string.Format("/{0}", product.Id);
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
