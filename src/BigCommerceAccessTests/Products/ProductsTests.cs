@@ -67,12 +67,34 @@ namespace BigCommerceAccessTests.Products
 		}
 
 		[ Test ]
+		public void GetProductsImagesV3()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
+			var products = service.GetProducts();
+
+			products.Count().Should().BeGreaterThan( 0 );
+			var productWithImages = products.Where( pr => pr.ImageUrls != null && !string.IsNullOrWhiteSpace( pr.ImageUrls.StandardUrl ) );
+			productWithImages.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
 		public async Task GetProductsV3Async()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
 			var products = await service.GetProductsAsync( CancellationToken.None );
 
 			products.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[ Test ]
+		public async Task GetProductsImagesV3Async()
+		{
+			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
+			var products = await service.GetProductsAsync( CancellationToken.None );
+			
+			products.Count().Should().BeGreaterThan( 0 );
+			var productWithImages = products.Where( pr => pr.ImageUrls != null && !string.IsNullOrWhiteSpace( pr.ImageUrls.StandardUrl ) );
+			productWithImages.Count().Should().BeGreaterThan( 0 );
 		}
 
 		[ Test ]
