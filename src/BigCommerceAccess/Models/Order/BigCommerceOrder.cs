@@ -51,6 +51,29 @@ namespace BigCommerceAccess.Models.Order
 		private List< BigCommerceOrderProduct > _products;
 		private List< BigCommerceShippingAddress > _shippingAddresses;
 
+		[ DataMember( Name = "discount_amount" ) ]
+		public string DiscountAmountValue{ get; set; }
+
+		[ DataMember( Name = "total_tax" ) ]
+		public string TotalTaxValue{ get; set; }
+
+		[ DataMember( Name = "currency_code" ) ]
+		public string CurrencyCode{ get; set; }
+
+		[ DataMember( Name = "coupons" ) ]
+		public BigCommerceReferenceObject CouponsReference{ get; set; }
+
+		private List< BigCommerceOrderCoupon > _coupons;
+		public List< BigCommerceOrderCoupon > Coupons
+		{
+			get { return this._coupons; }
+			set
+			{
+				if( value != null )
+					this._coupons = value;
+			}
+		}
+
 		public List< BigCommerceOrderProduct > Products
 		{
 			get { return this._products; }
@@ -97,9 +120,30 @@ namespace BigCommerceAccess.Models.Order
 			}
 		}
 
+		public decimal DiscountAmount
+		{
+			get
+			{	
+				decimal discountAmount;
+				decimal.TryParse( this.DiscountAmountValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out discountAmount );
+				return discountAmount;
+			}
+		}
+
+		public decimal TotalTax
+		{
+			get
+			{	
+				decimal totalTax;
+				decimal.TryParse( this.TotalTaxValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out totalTax );
+				return totalTax;
+			}
+		}
+
 		public BigCommerceOrder()
 		{
 			this._products = new List< BigCommerceOrderProduct >();
+			this._coupons = new List< BigCommerceOrderCoupon >();
 			this._shippingAddresses = new List< BigCommerceShippingAddress >();
 		}
 	}

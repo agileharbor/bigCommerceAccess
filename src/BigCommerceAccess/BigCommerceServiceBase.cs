@@ -12,7 +12,7 @@ namespace BigCommerceAccess
 		//to have 18000 per hour and 2000 calls for the retry needs
 		private readonly TimeSpan DefaultApiDelay = TimeSpan.FromMilliseconds( 200 );
 		protected const int RequestMaxLimit = 250;
-		protected const int MaxThreadsCount = 10;
+		protected const int MaxThreadsCount = 5;
 
 		protected Task CreateApiDelay( IBigCommerceRateLimits limits )
 		{

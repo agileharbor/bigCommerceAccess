@@ -62,13 +62,13 @@
     </Compile>
     <Compile Include="BigCommerceFactory.cs" />
     <Compile Include="BigCommerceOrdersService.cs" />
-    <Compile Include="BigCommerceProductsService.cs" />
     <Compile Include="BigCommerceServiceBase.cs" />
     <Compile Include="IBigCommerceOrdersService.cs" />
     <Compile Include="IBigCommerceProductsService.cs" />
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\BigCommerceLogger.cs" />
     <Compile Include="Models\BigCommerceObjectBase.cs" />
+    <Compile Include="Models\Order\BigCommerceOrderCoupon.cs" />
     <Compile Include="Models\Product\BigCommerceProductInfoData.cs" />
     <Compile Include="Models\Product\BigCommerceVariant.cs" />
     <Compile Include="Models\Product\BigCommerceImage.cs" />
@@ -93,6 +93,10 @@
     <Compile Include="Models\Product\BigCommerceProductOption.cs" />
     <Compile Include="Models\Throttling\IBigCommerceRateLimits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BigCommerceBaseProductsService.cs" />
+    <Compile Include="BigCommerceProductsServiceV2.cs" />
+    <Compile Include="BigCommerceProductsServiceV2OAuth.cs" />
+    <Compile Include="BigCommerceProductsServiceV3.cs" />
     <Compile Include="Services\ParamsBuilder.cs" />
     <Compile Include="Services\WebRequestServices.cs" />
   </ItemGroup>
