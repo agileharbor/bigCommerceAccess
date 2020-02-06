@@ -26,7 +26,7 @@ namespace BigCommerceAccess
 		#region Get
 		public List< BigCommerceProduct > GetProducts( bool includeExtendedInfo )
 		{
-			var mainEndpoint = "?include=variants";
+			var mainEndpoint = "?include=variants,images";
 			var products = new List< BigCommerceProduct >();
 			var marker = this.GetMarker();
 
@@ -104,7 +104,7 @@ namespace BigCommerceAccess
 
 		public async Task< List< BigCommerceProduct > > GetProductsAsync( CancellationToken token, bool includeExtendedInfo )
 		{
-			var mainEndpoint = "?include=variants";
+			var mainEndpoint = "?include=variants,images";
 			var products = new List< BigCommerceProduct >();
 			var marker = this.GetMarker();
 
