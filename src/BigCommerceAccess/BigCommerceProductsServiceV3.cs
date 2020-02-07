@@ -34,7 +34,7 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					var webEx = ex?.InnerException as WebException;
+					var webEx = ex.InnerException as WebException;
 
 					if ( webEx != null )
 					{
@@ -114,7 +114,7 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					var webEx = ex?.InnerException as WebException;
+					var webEx = ex.InnerException as WebException;
 
 					if ( webEx != null )
 					{
