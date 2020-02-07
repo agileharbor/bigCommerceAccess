@@ -41,8 +41,10 @@ namespace BigCommerceAccess
 						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
 						{
 							// gracefully decrease products page size
-							int newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-							i = (int)Math.Floor( ( ( i - 1 ) * this.RequestMaxLimit * 1.0 ) / newRequestMaxLimit ) + 1;
+							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
+							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
+							
+							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
 							this.RequestMaxLimit = newRequestMaxLimit;
 						}
 					}
@@ -119,8 +121,10 @@ namespace BigCommerceAccess
 						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
 						{
 							// gracefully decrease products page size
-							int newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-							i = (int)Math.Floor( ( ( i - 1 ) * this.RequestMaxLimit * 1.0 ) / newRequestMaxLimit ) + 1;
+							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
+							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
+							
+							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
 							this.RequestMaxLimit = newRequestMaxLimit;
 						}
 					}
