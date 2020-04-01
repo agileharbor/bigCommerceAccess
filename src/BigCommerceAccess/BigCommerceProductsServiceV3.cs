@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess.Misc;
@@ -7,6 +9,7 @@ using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
 using BigCommerceAccess.Services;
+using Netco.ActionPolicyServices;
 using Netco.Extensions;
 using ServiceStack;
 
@@ -29,9 +32,29 @@ namespace BigCommerceAccess
 
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
-				var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var productsWithinPage = ActionPolicies.Get.Get( () =>
-					base._webRequestServices.GetResponse< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ) );
+				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
+				{
+					var webEx = ex.InnerException as WebException;
+
+					if ( webEx != null )
+					{
+						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
+						{
+							// gracefully decrease products page size
+							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
+							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
+							
+							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
+							this.RequestMaxLimit = newRequestMaxLimit;
+						}
+					}
+
+					ActionPolicies.LogRetryAndWait( ex, retryAttempt );
+				} ).Get( () => {
+					var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
+					return this._webRequestServices.GetResponse< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
+				} );
+				
 				this.CreateApiDelay( productsWithinPage.Limits ).Wait(); //API requirement
 
 				if( productsWithinPage.Response == null )
@@ -89,9 +112,29 @@ namespace BigCommerceAccess
 
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
-				var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ) );
+				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
+				{
+					var webEx = ex.InnerException as WebException;
+
+					if ( webEx != null )
+					{
+						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
+						{
+							// gracefully decrease products page size
+							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
+							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
+							
+							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
+							this.RequestMaxLimit = newRequestMaxLimit;
+						}
+					}
+
+					return ActionPolicies.LogRetryAndWaitAsync( ex, retryAttempt );
+				} ).Get( () => {
+					var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
+					return this._webRequestServices.GetResponseAsync< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
+				} );
+				
 				await this.CreateApiDelay( productsWithinPage.Limits, token ); //API requirement
 
 				if( productsWithinPage.Response == null )
