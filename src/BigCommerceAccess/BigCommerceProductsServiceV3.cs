@@ -61,6 +61,9 @@ namespace BigCommerceAccess
 					break;
 
 				foreach( var product in productsWithinPage.Response.Data )
+				{
+					var productImage = product.Images.FirstOrDefault( img => img.IsThumbnail );
+
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
@@ -76,7 +79,10 @@ namespace BigCommerceAccess
 						Weight = product.Weight,
 						BrandId = product.BrandId,
 						Quantity = product.Quantity,
-						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
+						ImageUrls = new BigCommerceProductPrimaryImages()
+						{ 
+							StandardUrl = productImage != null ? productImage.UrlStandard : string.Empty
+						},
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
 							Id = x.Id,
@@ -90,6 +96,7 @@ namespace BigCommerceAccess
 							ImageFile = x.ImageUrl
 						} ).ToList()
 					} );
+				}
 
 				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
 					break;
@@ -141,6 +148,9 @@ namespace BigCommerceAccess
 					break;
 
 				foreach( var product in productsWithinPage.Response.Data )
+				{
+					var productImage = product.Images.FirstOrDefault( img => img.IsThumbnail );
+
 					products.Add( new BigCommerceProduct
 					{
 						Id = product.Id,
@@ -156,7 +166,10 @@ namespace BigCommerceAccess
 						Weight = product.Weight,
 						BrandId = product.BrandId,
 						Quantity = product.Quantity,
-						ImageUrls = new BigCommerceProductPrimaryImages { StandardUrl = product.Images.FirstOrDefault() != null ? product.Images.FirstOrDefault().UrlStandard : string.Empty },
+						ImageUrls = new BigCommerceProductPrimaryImages()
+						{ 
+							StandardUrl = productImage != null ? productImage.UrlStandard : string.Empty
+						},
 						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
 						{
 							Id = x.Id,
@@ -170,6 +183,7 @@ namespace BigCommerceAccess
 							ImageFile = x.ImageUrl
 						} ).ToList()
 					} );
+				}
 
 				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
 					break;

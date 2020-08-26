@@ -8,5 +8,8 @@ namespace BigCommerceAccess.Models.Product
 	{
 		[ DataMember( Name = "url_standard" ) ]
 		public string UrlStandard{ get; set; }
+
+		[ DataMember( Name = "is_thumbnail" ) ]
+		public bool IsThumbnail { get; set; }
 	}
 }
