@@ -25,7 +25,8 @@ namespace BigCommerceAccess.Misc
 
 		public static void LogTraceException( CallInfo callInfo, Exception exception )
 		{
-			if ( callInfo is ResponseInfo responseInfo )
+			var responseInfo = callInfo as ResponseInfo;
+			if ( responseInfo != null )
 			{
 				Log().Trace( exception, "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Request '{callMarker}' to url '{callUrl}' failed. Response status code: {callResponseStatusCode}", 
 					ChannelName, 
@@ -39,7 +40,8 @@ namespace BigCommerceAccess.Misc
 					responseInfo.StatusCode );
 			}
 
-			if ( callInfo is RetryInfo retryInfo )
+			var retryInfo = callInfo as RetryInfo;
+			if ( retryInfo != null )
 			{
 				Log().Trace( exception, "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Request '{callMarker}' to url '{callUrl}' failed. Gonna retry request for the {callRetryAttempt} attempt, delay {callRetryDelay} seconds, total retry attempts {callRetryTotalAttempts}", 
 					ChannelName, 
