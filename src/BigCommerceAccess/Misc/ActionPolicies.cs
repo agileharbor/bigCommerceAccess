@@ -12,33 +12,105 @@ namespace BigCommerceAccess.Misc
 #else
 		public const int RetryCount = 10;
 #endif
-
-		public static readonly ActionPolicy Submit = ActionPolicy.Handle< Exception >().Retry( RetryCount, ( ex, i ) =>
+		
+		public static ActionPolicy Submit( string marker, string url )
 		{
-			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API submit call for the {0} time", i );
-			SystemUtil.Sleep( TimeSpan.FromSeconds( 5 + 20 * i ) );
-		} );
-
-		public static readonly ActionPolicyAsync SubmitAsync = ActionPolicyAsync.Handle< Exception >().RetryAsync( RetryCount, async ( ex, i ) =>
-		{
-			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API submit call for the {0} time", i );
-			await Task.Delay( TimeSpan.FromSeconds( 5 + 20 * i ) );
-		} );
-
-		public static readonly ActionPolicy Get = ActionPolicy.Handle< Exception >().Retry( RetryCount, LogRetryAndWait );
-
-		public static readonly ActionPolicyAsync GetAsync = ActionPolicyAsync.Handle< Exception >().RetryAsync( RetryCount, LogRetryAndWaitAsync );
-
-		public static void LogRetryAndWait( Exception ex, int retryAttempt )
-		{
-			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API get call for the {0} time", retryAttempt );
-			SystemUtil.Sleep( TimeSpan.FromSeconds( 5 + 20 * retryAttempt ) );
+			return ActionPolicy.Handle< Exception >().Retry( RetryCount, ( ex, i ) =>
+			{
+				var delay = TimeSpan.FromSeconds( 5 + 20 * i );
+				BigCommerceLogger.LogTraceException( new RetryInfo()
+				{
+					Mark = marker,
+					Url = url,
+					CurrentRetryAttempt = i,
+					TotalRetriesAttempts = RetryCount,
+					DelayInSeconds = delay.TotalSeconds,
+					Category = MessageCategoryEnum.Warning
+				}, ex );
+				SystemUtil.Sleep( delay );
+			} );
 		}
 
-		public static async Task LogRetryAndWaitAsync( Exception ex, int retryAttempt )
+		public static ActionPolicyAsync SubmitAsync( string marker, string url )
 		{
-			BigCommerceLogger.Log.Trace( ex, "Retrying BigCommerce API get call for the {0} time", retryAttempt );
-			await Task.Delay( TimeSpan.FromSeconds( 5 + 20 * retryAttempt ) );
+			return ActionPolicyAsync.Handle< Exception >().RetryAsync( RetryCount, async ( ex, i ) =>
+			{
+				var delay = TimeSpan.FromSeconds( 5 + 20 * i );
+				BigCommerceLogger.LogTraceException( new RetryInfo()
+				{
+					Mark = marker,
+					Url = url,
+					CurrentRetryAttempt = i,
+					TotalRetriesAttempts = RetryCount,
+					DelayInSeconds = delay.TotalSeconds,
+					Category = MessageCategoryEnum.Warning
+				}, ex );
+				await Task.Delay( delay );
+			} );
+		}
+
+		public static ActionPolicy Get( string marker, string url )
+		{
+			return ActionPolicy.Handle< Exception >().Retry( RetryCount, ( ex, retryAttempt ) => { 
+				var delay = TimeSpan.FromSeconds( 5 + 20 * retryAttempt );
+				BigCommerceLogger.LogTraceException( new RetryInfo()
+				{
+					Mark = marker,
+					Url = url,
+					CurrentRetryAttempt = retryAttempt,
+					TotalRetriesAttempts = RetryCount,
+					DelayInSeconds = delay.TotalSeconds,
+					Category = MessageCategoryEnum.Warning
+				}, ex );
+				SystemUtil.Sleep( delay );
+			} );
+		}
+
+		public static ActionPolicyAsync GetAsync( string marker, string url )
+		{
+			return ActionPolicyAsync.Handle< Exception >().RetryAsync( RetryCount, async ( ex, retryAttempt ) => { 
+				var delay = TimeSpan.FromSeconds( 5 + 20 * retryAttempt );
+				BigCommerceLogger.LogTraceException( new RetryInfo()
+				{
+					Mark = marker,
+					Url = url,
+					CurrentRetryAttempt = retryAttempt,
+					TotalRetriesAttempts = RetryCount,
+					DelayInSeconds = delay.TotalSeconds,
+					Category = MessageCategoryEnum.Warning
+				}, ex );
+				await Task.Delay( delay );
+			} );
+		}
+
+		public static void LogRetryAndWait( Exception ex, string marker, string url, int retryAttempt )
+		{
+			var delay = TimeSpan.FromSeconds( 5 + 20 * retryAttempt );
+			BigCommerceLogger.LogTraceException( new RetryInfo()
+			{
+				Mark = marker,
+				Url = url,
+				CurrentRetryAttempt = retryAttempt,
+				TotalRetriesAttempts = RetryCount,
+				DelayInSeconds = delay.TotalSeconds,
+				Category = MessageCategoryEnum.Warning
+			}, ex );
+			SystemUtil.Sleep( delay );
+		}
+
+		public static async Task LogRetryAndWaitAsync( Exception ex, string marker, string url, int retryAttempt )
+		{
+			var delay = TimeSpan.FromSeconds( 5 + 20 * retryAttempt );
+			BigCommerceLogger.LogTraceException( new RetryInfo()
+			{
+				Mark = marker,
+				Url = url,
+				CurrentRetryAttempt = retryAttempt,
+				TotalRetriesAttempts = RetryCount,
+				DelayInSeconds = delay.TotalSeconds,
+				Category = MessageCategoryEnum.Warning
+			}, ex );
+			await Task.Delay( delay );
 		}
 	}
 }

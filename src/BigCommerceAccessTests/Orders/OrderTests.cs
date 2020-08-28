@@ -23,7 +23,7 @@ namespace BigCommerceAccessTests.Orders
 		[ SetUp ]
 		public void Init()
 		{
-			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			NetcoLogger.LoggerFactory = new NullLoggerFactory();
 			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
 			var cc = new CsvContext();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BigCommerceAccess;
+using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
 using FluentAssertions;
@@ -26,7 +27,7 @@ namespace BigCommerceAccessTests.Products
 		[ SetUp ]
 		public void Init()
 		{
-			NetcoLogger.LoggerFactory = new ConsoleLoggerFactory();
+			NetcoLogger.LoggerFactory = new NullLoggerFactory();
 			const string credentialsFilePath = @"..\..\Files\BigCommerceCredentials.csv";
 
 			var cc = new CsvContext();

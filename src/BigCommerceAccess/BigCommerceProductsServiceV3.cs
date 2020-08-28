@@ -32,6 +32,7 @@ namespace BigCommerceAccess
 
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
+				var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
 					var webEx = ex.InnerException as WebException;
@@ -49,10 +50,9 @@ namespace BigCommerceAccess
 						}
 					}
 
-					ActionPolicies.LogRetryAndWait( ex, retryAttempt );
+					ActionPolicies.LogRetryAndWait( ex, marker, endpoint, retryAttempt );
 				} ).Get( () => {
-					var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-					return this._webRequestServices.GetResponse< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
+					return this._webRequestServices.GetResponseByRelativeUrl< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
 				} );
 				
 				this.CreateApiDelay( productsWithinPage.Limits ).Wait(); //API requirement
@@ -119,6 +119,7 @@ namespace BigCommerceAccess
 
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
+				var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
 				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
 					var webEx = ex.InnerException as WebException;
@@ -136,10 +137,9 @@ namespace BigCommerceAccess
 						}
 					}
 
-					return ActionPolicies.LogRetryAndWaitAsync( ex, retryAttempt );
+					return ActionPolicies.LogRetryAndWaitAsync( ex, marker, endpoint, retryAttempt );
 				} ).Get( () => {
-					var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-					return this._webRequestServices.GetResponseAsync< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
+					return this._webRequestServices.GetResponseByRelativeUrlAsync< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
 				} );
 				
 				await this.CreateApiDelay( productsWithinPage.Limits, token ); //API requirement
@@ -209,7 +209,7 @@ namespace BigCommerceAccess
 				var endpoint = string.Format("/{0}/variants/{1}", productOption.ProductId, productOption.Id );
 				var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
 
-				var limit = ActionPolicies.Submit.Get( () =>
+				var limit = ActionPolicies.Submit( marker, endpoint ).Get( () =>
 					this._webRequestServices.PutData( BigCommerceCommand.UpdateProductsV3, endpoint, jsonContent, marker ) );
 				this.CreateApiDelay( limit ).Wait(); //API requirement
 			}
@@ -224,7 +224,7 @@ namespace BigCommerceAccess
 				var endpoint = string.Format("/{0}/variants/{1}", productOption.ProductId, productOption.Id );
 				var jsonContent = new { inventory_level = productOption.Quantity }.ToJson();
 
-				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
+				var limit = await ActionPolicies.SubmitAsync( marker, endpoint ).Get( async () =>
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductsV3, endpoint, jsonContent, marker ) );
 				await this.CreateApiDelay( limit, token ); //API requirement
 			} );
@@ -239,7 +239,7 @@ namespace BigCommerceAccess
 				var endpoint = string.Format("/{0}", product.Id);
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-				var limit = ActionPolicies.Submit.Get( () =>
+				var limit = ActionPolicies.Submit( marker, endpoint ).Get( () =>
 					this._webRequestServices.PutData( BigCommerceCommand.UpdateProductsV3, endpoint, jsonContent, marker ) );
 				this.CreateApiDelay( limit ).Wait(); //API requirement
 			}
@@ -254,7 +254,7 @@ namespace BigCommerceAccess
 				var endpoint = string.Format("/{0}", product.Id);
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
+				var limit = await ActionPolicies.SubmitAsync( marker, endpoint ).Get( async () =>
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductsV3, endpoint, jsonContent, marker ) );
 
 				await this.CreateApiDelay( limit, token ); //API requirement
