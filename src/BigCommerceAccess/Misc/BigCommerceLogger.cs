@@ -23,94 +23,81 @@ namespace BigCommerceAccess.Misc
 			return NetcoLogger.GetLogger( "BigCommerceLogger" );
 		}
 
-		public static void LogTraceException( CallInfo callInfo, Exception exception )
+		public static void LogTraceException( ResponseInfo responseInfo, Exception exception )
 		{
-			var responseInfo = callInfo as ResponseInfo;
-			if ( responseInfo != null )
-			{
-				Log().Trace( exception, "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Request '{callMarker}' to url '{callUrl}' failed. Response status code: {callResponseStatusCode}", 
-					ChannelName, 
-					_versionInfo, 
-					callInfo.TenantId ?? 0,
-					callInfo.ChannelAccountId ?? 0,
-					responseInfo.Category, 
-					responseInfo.LibMethodName,
-					responseInfo.Mark, 
-					responseInfo.Url, 
-					responseInfo.StatusCode );
-			}
-
-			var retryInfo = callInfo as RetryInfo;
-			if ( retryInfo != null )
-			{
-				Log().Trace( exception, "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Request '{callMarker}' to url '{callUrl}' failed. Gonna retry request for the {callRetryAttempt} attempt, delay {callRetryDelay} seconds, total retry attempts {callRetryTotalAttempts}", 
-					ChannelName, 
-					_versionInfo, 
-					callInfo.TenantId ?? 0,
-					callInfo.ChannelAccountId ?? 0,
-					retryInfo.Category, 
-					retryInfo.LibMethodName,
-					retryInfo.Mark, 
-					retryInfo.Url, 
-					retryInfo.CurrentRetryAttempt, 
-					retryInfo.DelayInSeconds, 
-					retryInfo.TotalRetriesAttempts );
-			}
+			Log().Trace( exception, "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Request '{callMarker}' to url '{callUrl}' failed. Response status code: {callResponseStatusCode}", 
+									ChannelName, 
+									_versionInfo, 
+									responseInfo.TenantId ?? 0,
+									responseInfo.ChannelAccountId ?? 0,
+									responseInfo.Category, 
+									responseInfo.LibMethodName,
+									responseInfo.Mark, 
+									responseInfo.Url, 
+									responseInfo.StatusCode );
 		}
 
-		public static void TraceLog( CallInfo callInfo )
+		public static void LogTraceException( RetryInfo retryInfo, Exception exception )
 		{
-			var requestInfo = callInfo as RequestInfo;
-			if ( requestInfo != null )
+			Log().Trace( exception, "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Request '{callMarker}' to url '{callUrl}' failed. Gonna retry request for the {callRetryAttempt} attempt, delay {callRetryDelay} seconds, total retry attempts {callRetryTotalAttempts}", 
+									ChannelName, 
+									_versionInfo, 
+									retryInfo.TenantId ?? 0,
+									retryInfo.ChannelAccountId ?? 0,
+									retryInfo.Category, 
+									retryInfo.LibMethodName,
+									retryInfo.Mark, 
+									retryInfo.Url, 
+									retryInfo.CurrentRetryAttempt, 
+									retryInfo.DelayInSeconds, 
+									retryInfo.TotalRetriesAttempts );
+		}
+
+		public static void TraceLog( RequestInfo requestInfo )
+		{
+			if ( !string.IsNullOrWhiteSpace( requestInfo.Body?.ToString() ) )
 			{
-				if ( !string.IsNullOrWhiteSpace( requestInfo.Body?.ToString() ) )
-				{
-					Log().Trace( "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Starting {callHttpMethod} call '{callMarker}' to '{callUrl}' with body: '{callRequestBody}'", 
-						ChannelName, 
-						_versionInfo, 
-						callInfo.TenantId ?? 0,
-						callInfo.ChannelAccountId ?? 0,
-						requestInfo.Category, 
-						requestInfo.LibMethodName, 
-						requestInfo.HttpMethod.ToString().ToUpper(), 
-						requestInfo.Mark, 
-						requestInfo.Url, 
-						requestInfo.Body ?? string.Empty );
-				}
-				else
-				{
-					Log().Trace( "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Starting {callHttpMethod} call '{callMarker}' to '{callUrl}'", 
-						ChannelName, 
-						_versionInfo, 
-						callInfo.TenantId ?? 0,
-						callInfo.ChannelAccountId ?? 0,
-						requestInfo.Category, 
-						requestInfo.LibMethodName, 
-						requestInfo.HttpMethod.ToString().ToUpper(),
-						requestInfo.Mark,  
-						requestInfo.Url );
-				}
-				
+				Log().Trace( "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Starting {callHttpMethod} call '{callMarker}' to '{callUrl}' with body: '{callRequestBody}'", 
+								ChannelName, 
+								_versionInfo, 
+								requestInfo.TenantId ?? 0,
+								requestInfo.ChannelAccountId ?? 0,
+								requestInfo.Category, 
+								requestInfo.LibMethodName, 
+								requestInfo.HttpMethod.ToString().ToUpper(), 
+								requestInfo.Mark, 
+								requestInfo.Url, 
+								requestInfo.Body ?? string.Empty );
 				return;
 			}
 			
-			var responseInfo = callInfo as ResponseInfo;
-			if ( responseInfo != null )
-			{
-				Log().Trace( "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Completed call '{callMarker}' to '{callUrl}'. Response status code: {callResponseStatusCode}, api calls remaining: {callRemainingCalls}, system version: {callExternalSystemVersion}. Response body: '{callResponseBody}'", 
-					ChannelName,
-					_versionInfo, 
-					callInfo.TenantId ?? 0,
-					callInfo.ChannelAccountId ?? 0,
-					responseInfo.Category,
-					callInfo.LibMethodName,
-					callInfo.Mark, 
-					callInfo.Url, 
-					responseInfo.StatusCode, 
-					responseInfo.RemainingCalls, 
-					responseInfo.SystemVersion, 
-					responseInfo.Response != null ? responseInfo.Response.ToJson() : string.Empty );
-			}
+			Log().Trace( "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Starting {callHttpMethod} call '{callMarker}' to '{callUrl}'", 
+							ChannelName, 
+							_versionInfo, 
+							requestInfo.TenantId ?? 0,
+							requestInfo.ChannelAccountId ?? 0,
+							requestInfo.Category, 
+							requestInfo.LibMethodName, 
+							requestInfo.HttpMethod.ToString().ToUpper(),
+							requestInfo.Mark,  
+							requestInfo.Url );
+		}
+
+		public static void TraceLog( ResponseInfo responseInfo )
+		{
+			Log().Trace( "[{channel}] [{version}] [{tenantId}] [{accountId}] [{callCategory}] [{callLibMethodName}] Completed call '{callMarker}' to '{callUrl}'. Response status code: {callResponseStatusCode}, api calls remaining: {callRemainingCalls}, system version: {callExternalSystemVersion}. Response body: '{callResponseBody}'", 
+							ChannelName,
+							_versionInfo, 
+							responseInfo.TenantId ?? 0,
+							responseInfo.ChannelAccountId ?? 0,
+							responseInfo.Category,
+							responseInfo.LibMethodName,
+							responseInfo.Mark, 
+							responseInfo.Url, 
+							responseInfo.StatusCode, 
+							responseInfo.RemainingCalls, 
+							responseInfo.SystemVersion, 
+							responseInfo.Response != null ? responseInfo.Response.ToJson() : string.Empty );
 		}
 	}
 }

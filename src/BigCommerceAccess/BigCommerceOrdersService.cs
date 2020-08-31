@@ -153,6 +153,9 @@ namespace BigCommerceAccess
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
+					if ( string.IsNullOrWhiteSpace( order.ProductsReference?.Url ) )
+						break;
+
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var products = ActionPolicies.Get( marker, endpoint ).Get( () =>
 						this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
@@ -174,6 +177,9 @@ namespace BigCommerceAccess
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
+					if ( string.IsNullOrWhiteSpace( order.ProductsReference?.Url ) )
+						break;
+
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var products = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
 						await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
@@ -196,6 +202,9 @@ namespace BigCommerceAccess
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
+					if ( string.IsNullOrWhiteSpace( order.CouponsReference?.Url ) )
+						break;
+
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var coupons = ActionPolicies.Get( marker, endpoint ).Get( () =>
 						this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
@@ -217,6 +226,9 @@ namespace BigCommerceAccess
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
+					if ( string.IsNullOrWhiteSpace( order.CouponsReference?.Url ) )
+						break;
+
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 					var coupons = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
 						await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
@@ -237,6 +249,9 @@ namespace BigCommerceAccess
 		{
 			foreach( var order in orders )
 			{
+				if ( string.IsNullOrWhiteSpace( order.ShippingAddressesReference?.Url ) )
+					continue;
+
 				var addresses = ActionPolicies.Get( marker, order.ShippingAddressesReference.Url ).Get( () =>
 					this._webRequestServices.GetResponse< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
 				order.ShippingAddresses = addresses.Response;
@@ -249,7 +264,10 @@ namespace BigCommerceAccess
 			var threadCount = isUnlimit ? MaxThreadsCount : 1;
 			await orders.DoInBatchAsync( threadCount, async order =>
 			{
-				var addresses = await ActionPolicies.GetAsync( marker, order.ShippingAddressesReference.Url).Get( async () =>
+				if ( string.IsNullOrWhiteSpace( order.ShippingAddressesReference?.Url ) )
+					return;
+
+				var addresses = await ActionPolicies.GetAsync( marker, order.ShippingAddressesReference.Url ).Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
 				order.ShippingAddresses = addresses.Response;
 				await this.CreateApiDelay( addresses.Limits, token ); //API requirement
