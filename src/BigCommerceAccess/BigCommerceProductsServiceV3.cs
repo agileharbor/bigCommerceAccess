@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -34,17 +35,15 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					var webEx = ex.InnerException as WebException;
-
-					if ( webEx != null )
+					if ( this.IsResponseTooLargeToRead( ex ) )
 					{
-						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
+						// gracefully decrease products page size
+						var productsLoaded = this.RequestMaxLimit * ( i - 1 );
+						var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
+						
+						if ( newRequestMaxLimit >= this.RequestMinLimit )
 						{
-							// gracefully decrease products page size
-							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
-							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-							
-							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
+							i = (int)Math.Floor( productsLoaded * 1.0 / newRequestMaxLimit ) + 1;
 							this.RequestMaxLimit = newRequestMaxLimit;
 						}
 					}
@@ -121,17 +120,15 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					var webEx = ex.InnerException as WebException;
-
-					if ( webEx != null )
+					if ( this.IsResponseTooLargeToRead( ex ) )
 					{
-						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
-						{
-							// gracefully decrease products page size
-							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
-							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
+						// gracefully decrease products page size
+						var productsLoaded = this.RequestMaxLimit * ( i - 1 );
+						var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
 							
-							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
+						if ( newRequestMaxLimit >= this.RequestMinLimit )
+						{
+							i = (int)Math.Floor( productsLoaded * 1.0 / newRequestMaxLimit ) + 1;
 							this.RequestMaxLimit = newRequestMaxLimit;
 						}
 					}
@@ -196,6 +193,23 @@ namespace BigCommerceAccess
 			}
 
 			return products;
+		}
+
+		private bool IsResponseTooLargeToRead( Exception ex )
+		{
+			if ( ex.InnerException == null )
+				return false;
+
+			if ( ex.InnerException is IOException )
+				return true;
+
+			var webEx = ex.InnerException as WebException;
+			if ( webEx != null )
+			{
+				return webEx.Status == WebExceptionStatus.ConnectionClosed;
+			}
+
+			return false;
 		}
 		#endregion
 
