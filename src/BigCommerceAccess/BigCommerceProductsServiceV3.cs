@@ -35,17 +35,10 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					if ( this.IsResponseTooLargeToRead( ex ) )
+					if ( PageAdjuster.TryAdjustPageIfResponseTooLarge( new PageInfo( i, this.RequestMaxLimit ), this.RequestMinLimit, ex, out var newPageInfo ) )
 					{
-						// gracefully decrease products page size
-						var productsLoaded = this.RequestMaxLimit * ( i - 1 );
-						var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-						
-						if ( newRequestMaxLimit >= this.RequestMinLimit )
-						{
-							i = (int)Math.Floor( productsLoaded * 1.0 / newRequestMaxLimit ) + 1;
-							this.RequestMaxLimit = newRequestMaxLimit;
-						}
+						i = newPageInfo.Index;
+						this.RequestMaxLimit = newPageInfo.Size;
 					}
 
 					ActionPolicies.LogRetryAndWait( ex, retryAttempt );
@@ -120,17 +113,10 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					if ( this.IsResponseTooLargeToRead( ex ) )
+					if ( PageAdjuster.TryAdjustPageIfResponseTooLarge( new PageInfo( i, this.RequestMaxLimit ), this.RequestMinLimit, ex, out var newPageInfo ) )
 					{
-						// gracefully decrease products page size
-						var productsLoaded = this.RequestMaxLimit * ( i - 1 );
-						var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-							
-						if ( newRequestMaxLimit >= this.RequestMinLimit )
-						{
-							i = (int)Math.Floor( productsLoaded * 1.0 / newRequestMaxLimit ) + 1;
-							this.RequestMaxLimit = newRequestMaxLimit;
-						}
+						i = newPageInfo.Index;
+						this.RequestMaxLimit = newPageInfo.Size;
 					}
 
 					return ActionPolicies.LogRetryAndWaitAsync( ex, retryAttempt );
@@ -193,23 +179,6 @@ namespace BigCommerceAccess
 			}
 
 			return products;
-		}
-
-		private bool IsResponseTooLargeToRead( Exception ex )
-		{
-			if ( ex.InnerException == null )
-				return false;
-
-			if ( ex.InnerException is IOException )
-				return true;
-
-			var webEx = ex.InnerException as WebException;
-			if ( webEx != null )
-			{
-				return webEx.Status == WebExceptionStatus.ConnectionClosed;
-			}
-
-			return false;
 		}
 		#endregion
 
