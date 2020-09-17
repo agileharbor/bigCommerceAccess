@@ -18,7 +18,7 @@ namespace BigCommerceAccessTests
 		{
 			var currentPageSize = DefaultPageSize;
 			var newPageSize = PageAdjuster.GetHalfPageSize( currentPageSize );
-			newPageSize.Should().Be( 125 );
+			newPageSize.Should().Be( DefaultPageSize / 2 );
 		}
 
 		[ Test ]
@@ -42,7 +42,7 @@ namespace BigCommerceAccessTests
 		{
 			var currentPageIndex = 5;
 			var newPageIndex = PageAdjuster.GetNextPageIndex( new PageInfo( currentPageIndex, DefaultPageSize ), 125 );
-			newPageIndex.Should().Be( 9 );
+			newPageIndex.Should().Be( currentPageIndex * 2 - 1 );
 		}
 
 		[ Test ]
@@ -51,7 +51,7 @@ namespace BigCommerceAccessTests
 			var currentPageIndex = 5;
 			var currentPageSize = 125;
 			var newPageIndex = PageAdjuster.GetNextPageIndex( new PageInfo( currentPageIndex, currentPageSize ), 62 );
-			newPageIndex.Should().Be( 9 );
+			newPageIndex.Should().Be( currentPageIndex * 2 - 1 );
 		}
 
 		[ Test ]
@@ -85,25 +85,27 @@ namespace BigCommerceAccessTests
 		[ Test ]
 		public void GivenResponseWithIOException_WhenTryAdjustPageInfoCalled_ThenAdjustedPageInfoIsReturned()
 		{
-			var currentPageInfo = new PageInfo( 5, DefaultPageSize );
+			var initialPageIndex = 5;
+			var currentPageInfo = new PageInfo( initialPageIndex, DefaultPageSize );
 			var responseException = new Exception( string.Empty, new IOException( "Unable to read data" ) );
 			var isResponseTooLarge = PageAdjuster.TryAdjustPageIfResponseTooLarge( currentPageInfo, MinPageSize, responseException, out PageInfo newPageInfo );
 			
 			isResponseTooLarge.Should().Be( true );
-			newPageInfo.Size.Should().Be( 125 );
-			newPageInfo.Index.Should().Be( 9 );
+			newPageInfo.Size.Should().Be( DefaultPageSize / 2 );
+			newPageInfo.Index.Should().Be( initialPageIndex * 2 - 1 );
 		}
 
 		[ Test ]
 		public void GivenResponseWithWebExceptionAndStatusConnectionClosed_WhenTryAdjustPageInfoCalled_ThenAdjustedPageInfoIsReturned()
 		{
-			var currentPageInfo = new PageInfo( 5, DefaultPageSize );
+			var initialPageIndex = 5;
+			var currentPageInfo = new PageInfo( initialPageIndex, DefaultPageSize );
 			var responseException = new Exception( string.Empty, new WebException( "Unable to read data", WebExceptionStatus.ConnectionClosed ) );
 			var isResponseTooLarge = PageAdjuster.TryAdjustPageIfResponseTooLarge( currentPageInfo, MinPageSize, responseException, out PageInfo newPageInfo );
 			
 			isResponseTooLarge.Should().Be( true );
-			newPageInfo.Size.Should().Be( 125 );
-			newPageInfo.Index.Should().Be( 9 );
+			newPageInfo.Size.Should().Be( DefaultPageSize / 2 );
+			newPageInfo.Index.Should().Be( initialPageIndex * 2 - 1 );
 		}
 
 		[ Test ]
