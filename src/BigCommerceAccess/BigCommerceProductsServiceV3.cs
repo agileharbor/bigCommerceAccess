@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -34,19 +35,10 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					var webEx = ex.InnerException as WebException;
-
-					if ( webEx != null )
+					if ( PageAdjuster.TryAdjustPageIfResponseTooLarge( new PageInfo( i, this.RequestMaxLimit ), this.RequestMinLimit, ex, out var newPageInfo ) )
 					{
-						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
-						{
-							// gracefully decrease products page size
-							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
-							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-							
-							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
-							this.RequestMaxLimit = newRequestMaxLimit;
-						}
+						i = newPageInfo.Index;
+						this.RequestMaxLimit = newPageInfo.Size;
 					}
 
 					ActionPolicies.LogRetryAndWait( ex, retryAttempt );
@@ -121,19 +113,10 @@ namespace BigCommerceAccess
 			{
 				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
 				{
-					var webEx = ex.InnerException as WebException;
-
-					if ( webEx != null )
+					if ( PageAdjuster.TryAdjustPageIfResponseTooLarge( new PageInfo( i, this.RequestMaxLimit ), this.RequestMinLimit, ex, out var newPageInfo ) )
 					{
-						if ( webEx.Status == WebExceptionStatus.ConnectionClosed )
-						{
-							// gracefully decrease products page size
-							var productsLoaded = this.RequestMaxLimit * ( i - 1 );
-							var newRequestMaxLimit = (int)Math.Floor( this.RequestMaxLimit / 2d );
-							
-							i = (int)Math.Floor( productsLoaded / newRequestMaxLimit * 1.0 ) + 1;
-							this.RequestMaxLimit = newRequestMaxLimit;
-						}
+						i = newPageInfo.Index;
+						this.RequestMaxLimit = newPageInfo.Size;
 					}
 
 					return ActionPolicies.LogRetryAndWaitAsync( ex, retryAttempt );
