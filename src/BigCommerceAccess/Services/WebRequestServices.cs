@@ -189,6 +189,7 @@ namespace BigCommerceAccess.Services
 				request.Headers.Add( "X-Auth-Token", this._config.Token );
 				request.Timeout = RequestTimeoutMs;
 				request.ReadWriteTimeout = RequestTimeoutMs;
+				request.AutomaticDecompression = DecompressionMethods.GZip;
 
 				return request;
 			}
@@ -235,41 +236,23 @@ namespace BigCommerceAccess.Services
 		private BigCommerceResponse< T > ParseResponse< T >( WebResponse response, string marker ) where T : class
 		{
 			using( var stream = response.GetResponseStream() )
-			using( var reader = new StreamReader( stream ) )
 			{
-				var jsonResponse = reader.ReadToEnd();
-
-				var remainingLimit = this.GetRemainingLimit( response );
-				var version = response.Headers.Get( "X-BC-Store-Version" );
-				this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, jsonResponse, remainingLimit, version, marker );
-				var limits = this.ParseLimits( response );
-
-				if( string.IsNullOrEmpty( jsonResponse ) )
-					return new BigCommerceResponse< T >( null, limits );
-
-				var serviceStackResult = jsonResponse.FromJson< T >();
-				var jsonNetResult = JsonConvert.DeserializeObject< T >( jsonResponse );
-
-				//TODO: Added for investigation SI-730. Remove it if all are ok
-				var orders = serviceStackResult as List< BigCommerceOrder >;
-				if( orders != null && orders.Count > 0 )
+				using ( var reader = new StreamReader( stream ) )
 				{
-					var serviceStackOrdersStr = string.Join( ", ", orders.Select( x => string.Format( "id:{0} date:{1}", x.Id, x.DateCreated ) ) );
-					BigCommerceLogger.Log.Trace( "Marker: '{0}'. Url: '{1}' Retrieved ServiceStack BigCommerce orders: '{2}'",
-						marker, response.ResponseUri.OriginalString, serviceStackOrdersStr );
+					var content = reader.ReadToEnd();
 
-					var jsonNetOrders = jsonNetResult as List< BigCommerceOrder >;
-					if( jsonNetOrders != null && jsonNetOrders.Count > 0 )
-					{
-						var jsonNetOrdersStr = string.Join( ", ", orders.Select( x => string.Format( "id:{0} date:{1}", x.Id, x.DateCreated ) ) );
-						if( !serviceStackOrdersStr.Equals( jsonNetOrdersStr ) )
-						{
-							BigCommerceLogger.Log.Warn( "Marker: '{0}'. Url: '{1}' Retrieved different Json.Net BigCommerce orders: '{2}'",
-								marker, response.ResponseUri.OriginalString, jsonNetOrdersStr );
-						}
-					}
+					var remainingLimit = this.GetRemainingLimit( response );
+					var version = response.Headers.Get( "X-BC-Store-Version" );
+					this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, content, remainingLimit, version, marker );
+					var limits = this.ParseLimits( response );
+
+					if( string.IsNullOrEmpty( content ) )
+						return new BigCommerceResponse< T >( null, limits );
+
+					var result = JsonConvert.DeserializeObject< T >( content );
+
+					return new BigCommerceResponse< T >( result, limits );
 				}
-				return new BigCommerceResponse< T >( jsonNetResult, limits );
 			}
 		}
 
