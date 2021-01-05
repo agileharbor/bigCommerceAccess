@@ -199,6 +199,7 @@ namespace BigCommerceAccess.Services
 				request.Headers.Add( "X-Auth-Token", this._config.Token );
 				request.Timeout = RequestTimeoutMs;
 				request.ReadWriteTimeout = RequestTimeoutMs;
+				request.AutomaticDecompression = DecompressionMethods.GZip;
 
 				return request;
 			}
@@ -245,21 +246,23 @@ namespace BigCommerceAccess.Services
 		private BigCommerceResponse< T > ParseResponse< T >( WebResponse response, string marker, string url, string callerMethodName ) where T : class
 		{
 			using( var stream = response.GetResponseStream() )
-			using( var reader = new StreamReader( stream ) )
 			{
-				var jsonResponse = reader.ReadToEnd();
+				using ( var reader = new StreamReader( stream ) )
+				{
+					var jsonResponse = reader.ReadToEnd();
 
-				var remainingLimit = this.GetRemainingLimit( response );
-				var version = response.Headers.Get( "X-BC-Store-Version" );
-				var statusCode = ( ( HttpWebResponse )response ).StatusCode;
-				this.LogCallEnded( url, marker, callerMethodName, statusCode.ToString(), jsonResponse, remainingLimit, version );
-				var limits = this.ParseLimits( response );
+					var remainingLimit = this.GetRemainingLimit( response );
+					var version = response.Headers.Get( "X-BC-Store-Version" );
+					var statusCode = ( ( HttpWebResponse )response ).StatusCode;
+					this.LogCallEnded( url, marker, callerMethodName, statusCode.ToString(), jsonResponse, remainingLimit, version );
+					var limits = this.ParseLimits( response );
 
-				if( string.IsNullOrEmpty( jsonResponse ) )
-					return new BigCommerceResponse< T >( null, limits );
+					if( string.IsNullOrEmpty( jsonResponse ) )
+						return new BigCommerceResponse< T >( null, limits );
 
-				var result = JsonConvert.DeserializeObject< T >( jsonResponse );
-				return new BigCommerceResponse< T >( result, limits );
+					var result = JsonConvert.DeserializeObject< T >( jsonResponse );
+					return new BigCommerceResponse< T >( result, limits );
+				}
 			}
 		}
 

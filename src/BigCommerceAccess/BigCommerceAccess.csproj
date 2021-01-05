@@ -67,6 +67,7 @@
     <Compile Include="Misc\ActionPolicies.cs" />
     <Compile Include="Misc\BigCommerceLogger.cs" />
     <Compile Include="Misc\CallInfo.cs" />
+    <Compile Include="Misc\PageAdjuster.cs" />
     <Compile Include="Models\BigCommerceObjectBase.cs" />
     <Compile Include="Models\Order\BigCommerceOrderCoupon.cs" />
     <Compile Include="Models\Product\BigCommerceProductInfoData.cs" />
