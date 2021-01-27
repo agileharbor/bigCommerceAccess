@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -12,10 +11,8 @@ using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models;
 using BigCommerceAccess.Models.Command;
 using BigCommerceAccess.Models.Configuration;
-using BigCommerceAccess.Models.Order;
 using BigCommerceAccess.Models.Throttling;
 using Newtonsoft.Json;
-using ServiceStack;
 
 namespace BigCommerceAccess.Services
 {
@@ -43,55 +40,61 @@ namespace BigCommerceAccess.Services
 			return ( HttpWebRequest )WebRequest.Create( uri );
 		}
 
-		public BigCommerceResponse< T > GetResponse< T >( string url, string commandParams, string marker ) where T : class
+		public BigCommerceResponse< T > GetResponseByRelativeUrl< T >( string url, string commandParams, string marker, [ CallerMemberName ] string callerMethodName = null ) where T : class
 		{
 			var requestUrl = this.GetUrl( url, commandParams );
-			var result = this.GetResponse< T >( requestUrl, marker );
+			var result = this.GetResponse< T >( requestUrl, marker, callerMethodName );
 			return result;
 		}
 
-		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( string url, string commandParams, string marker ) where T : class
+		public async Task< BigCommerceResponse< T > > GetResponseByRelativeUrlAsync< T >( string url, string commandParams, string marker, [ CallerMemberName ] string callerMethodName = null ) where T : class
 		{
 			var requestUrl = this.GetUrl( url, commandParams );
-			var result = await this.GetResponseAsync< T >( requestUrl, marker );
+			var result = await this.GetResponseAsync< T >( requestUrl, marker, callerMethodName );
 			return result;
 		}
 
-		public BigCommerceResponse< T > GetResponse< T >( BigCommerceCommand command, string commandParams, string marker ) where T : class
+		public BigCommerceResponse< T > GetResponseByRelativeUrl< T >( BigCommerceCommand command, string commandParams, string marker, [ CallerMemberName ] string callerMethodName = null ) where T : class
 		{
 			var requestUrl = this.GetUrl( command, commandParams );
-			var result = this.GetResponse< T >( requestUrl, marker );
+			var result = this.GetResponse< T >( requestUrl, marker, callerMethodName );
 			return result;
 		}
 
-		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( BigCommerceCommand command, string commandParams, string marker ) where T : class
+		public async Task< BigCommerceResponse< T > > GetResponseByRelativeUrlAsync< T >( BigCommerceCommand command, string commandParams, string marker, [ CallerMemberName ] string callerMethodName = null ) where T : class
 		{
 			var requestUrl = this.GetUrl( command, commandParams );
-			var result = await this.GetResponseAsync< T >( requestUrl, marker );
+			var result = await this.GetResponseAsync< T >( requestUrl, marker, callerMethodName );
 			return result;
 		}
 
-		public BigCommerceResponse< T > GetResponse< T >( string url, string marker ) where T : class
+		public BigCommerceResponse< T > GetResponse< T >( string url, string marker, [ CallerMemberName ] string callerMethodName = null ) where T : class
 		{
-			this.LogGetInfo( url, marker );
+			this.LogCallStarted( url, marker, callerMethodName );
+			var responseStatusCode = HttpStatusCode.OK;
 
 			try
 			{
 				BigCommerceResponse< T > result;
 				var request = this.CreateGetServiceGetRequest( url );
 				using( var response = request.GetResponse() )
-					result = this.ParseResponse< T >( response, marker );
+				{
+					responseStatusCode = ( ( HttpWebResponse )response ).StatusCode;
+					result = this.ParseResponse< T >( response, marker, url, callerMethodName );
+				}
+					
 				return result;
 			}
 			catch( Exception ex )
 			{
-				throw this.ExceptionForGetInfo( url, ex, marker );
+				throw this.HandleExceptionAndLog( url, marker, callerMethodName, responseStatusCode.ToString(), ex );
 			}
 		}
 
-		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( string url, string marker ) where T : class
+		public async Task< BigCommerceResponse< T > > GetResponseAsync< T >( string url, string marker, [ CallerMemberName ] string callerMethodName = null ) where T : class
 		{
-			this.LogGetInfo( url, marker );
+			this.LogCallStarted( url, marker, callerMethodName );
+			var responseStatusCode = HttpStatusCode.OK;
 
 			try
 			{
@@ -101,41 +104,46 @@ namespace BigCommerceAccess.Services
 				using( timeoutToken.Register( request.Abort ) )
 				using( var response = await request.GetResponseAsync() )
 				{
+					responseStatusCode = ( ( HttpWebResponse )response ).StatusCode;
 					timeoutToken.ThrowIfCancellationRequested();
-					result = this.ParseResponse< T >( response, marker );
+					result = this.ParseResponse< T >( response, marker, url, callerMethodName );
 				}
 				return result;
 			}
 			catch( Exception ex )
 			{
-				throw this.ExceptionForGetInfo( url, ex, marker );
+				throw this.HandleExceptionAndLog( url, marker, callerMethodName, responseStatusCode.ToString(), ex );
 			}
 		}
 
-		public IBigCommerceRateLimits PutData( BigCommerceCommand command, string endpoint, string jsonContent, string marker )
+		public IBigCommerceRateLimits PutData( BigCommerceCommand command, string endpoint, string jsonContent, string marker, [ CallerMemberName ] string callerMethodName = null )
 		{
 			var url = this.GetUrl( command, endpoint );
-			this.LogPutInfo( url, jsonContent, marker );
+			this.LogCallStarted( url, marker, callerMethodName, HttpMethodEnum.Put, jsonContent );
+			var responseStatusCode = HttpStatusCode.OK;
 
 			try
 			{
 				var request = this.CreateServicePutRequest( url, jsonContent );
 				using( var response = ( HttpWebResponse )request.GetResponse() )
 				{
-					this.LogPutInfoResult( url, response.StatusCode, jsonContent, marker );
-					return this.ParseLimits( response );
+					responseStatusCode = response.StatusCode;
+					var currentLimits = this.ParseLimits( response );
+					this.LogCallEnded( url, marker, callerMethodName, response.StatusCode.ToString(), null, currentLimits.CallsRemaining.ToString(), null );
+					return currentLimits;
 				}
 			}
 			catch( Exception ex )
 			{
-				throw this.ExceptionForPutInfo( url, ex, marker );
+				throw this.HandleExceptionAndLog( url, marker, callerMethodName, responseStatusCode.ToString(), ex );
 			}
 		}
 
-		public async Task< IBigCommerceRateLimits > PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent, string marker )
+		public async Task< IBigCommerceRateLimits > PutDataAsync( BigCommerceCommand command, string endpoint, string jsonContent, string marker, [ CallerMemberName ] string callerMethodName = null )
 		{
 			var url = this.GetUrl( command, endpoint );
-			this.LogPutInfo( url, jsonContent, marker );
+			this.LogCallStarted( url, marker, callerMethodName, HttpMethodEnum.Put, jsonContent );
+			var responseStatusCode = HttpStatusCode.OK;
 
 			try
 			{
@@ -144,14 +152,16 @@ namespace BigCommerceAccess.Services
 				using( timeoutToken.Register( request.Abort ) )
 				using( var response = await request.GetResponseAsync() )
 				{
+					responseStatusCode = ( ( HttpWebResponse )response ).StatusCode;
 					timeoutToken.ThrowIfCancellationRequested();
-					this.LogPutInfoResult( url, ( ( HttpWebResponse )response ).StatusCode, jsonContent, marker );
-					return this.ParseLimits( response );
+					var currentLimits = this.ParseLimits( response );
+					this.LogCallEnded( url, marker, callerMethodName, ( ( HttpWebResponse )response ).StatusCode.ToString(), null, currentLimits.CallsRemaining.ToString(), null );
+					return currentLimits;
 				}
 			}
 			catch( Exception ex )
 			{
-				throw this.ExceptionForPutInfo( url, ex, marker );
+				throw this.HandleExceptionAndLog( url, marker, callerMethodName, responseStatusCode.ToString(), ex );
 			}
 		}
 
@@ -233,24 +243,24 @@ namespace BigCommerceAccess.Services
 		#endregion
 
 		#region Misc
-		private BigCommerceResponse< T > ParseResponse< T >( WebResponse response, string marker ) where T : class
+		private BigCommerceResponse< T > ParseResponse< T >( WebResponse response, string marker, string url, string callerMethodName ) where T : class
 		{
 			using( var stream = response.GetResponseStream() )
 			{
 				using ( var reader = new StreamReader( stream ) )
 				{
-					var content = reader.ReadToEnd();
+					var jsonResponse = reader.ReadToEnd();
 
 					var remainingLimit = this.GetRemainingLimit( response );
 					var version = response.Headers.Get( "X-BC-Store-Version" );
-					this.LogGetInfoResult( response.ResponseUri.OriginalString, ( ( HttpWebResponse )response ).StatusCode, content, remainingLimit, version, marker );
+					var statusCode = ( ( HttpWebResponse )response ).StatusCode;
+					this.LogCallEnded( url, marker, callerMethodName, statusCode.ToString(), jsonResponse, remainingLimit, version );
 					var limits = this.ParseLimits( response );
 
-					if( string.IsNullOrEmpty( content ) )
+					if( string.IsNullOrEmpty( jsonResponse ) )
 						return new BigCommerceResponse< T >( null, limits );
 
-					var result = JsonConvert.DeserializeObject< T >( content );
-
+					var result = JsonConvert.DeserializeObject< T >( jsonResponse );
 					return new BigCommerceResponse< T >( result, limits );
 				}
 			}
@@ -299,12 +309,12 @@ namespace BigCommerceAccess.Services
 			return string.Concat( "Basic ", authInfo );
 		}
 
-		private string ResolveHost( BigCommerceConfig config, string marker )
+		private string ResolveHost( BigCommerceConfig config, string marker, [ CallerMemberName ] string callerMethodName = null )
 		{
 			try
 			{
 				var url = string.Concat( config.NativeHost, BigCommerceCommand.GetOrdersCountV2.Command );
-				this.GetResponse< BigCommerceItemsCount >( url, marker );
+				this.GetResponse< BigCommerceItemsCount >( url, marker, callerMethodName );
 				return config.NativeHost;
 			}
 			catch( Exception )
@@ -312,14 +322,14 @@ namespace BigCommerceAccess.Services
 				try
 				{
 					var url = string.Concat( config.CustomHost, BigCommerceCommand.GetOrdersCountV2.Command );
-					this.GetResponse< BigCommerceItemsCount >( url, marker );
+					this.GetResponse< BigCommerceItemsCount >( url, marker, callerMethodName );
 					return config.CustomHost;
 				}
 				catch( Exception )
 				{
 					var clippedHost = config.CustomHost.Replace( "www.", string.Empty );
 					var url = string.Concat( clippedHost, BigCommerceCommand.GetOrdersCountV2.Command );
-					this.GetResponse< BigCommerceItemsCount >( url, marker );
+					this.GetResponse< BigCommerceItemsCount >( url, marker, callerMethodName );
 					return clippedHost;
 				}
 			}
@@ -332,35 +342,52 @@ namespace BigCommerceAccess.Services
 			return cancellationTokenSource.Token;
 		}
 
-		private void LogGetInfo( string url, string marker )
+		private void LogCallStarted( string url, string marker, string callerMethodName, HttpMethodEnum httpMethod = HttpMethodEnum.Get, string body = null )
 		{
-			BigCommerceLogger.Log.Trace( "Marker: '{0}'. GET call for url '{1}'", marker, url );
+			BigCommerceLogger.TraceLog( new RequestInfo()
+			{
+				Mark = marker,
+				Url = url,
+				LibMethodName = callerMethodName,
+				Category = MessageCategoryEnum.Information,
+				HttpMethod = httpMethod,
+				Body = body,
+				TenantId = this._config.TenantId,
+				ChannelAccountId = this._config.ChannelAccountId
+			} );
 		}
 
-		private void LogGetInfoResult( string url, HttpStatusCode statusCode, string jsonContent, string remainingLimit, string version, string marker )
+		private void LogCallEnded( string url, string marker, string callerMethodName, string statusCode, string response, string remainingCalls, string systemVersion )
 		{
-			BigCommerceLogger.Log.Trace( "Marker: '{0}'. GET call for url '{1}' has been completed with code '{2}'. Remaining Limit: '{3}' Version: '{4}'.\n{5}",
-				marker, url, statusCode, remainingLimit, version, jsonContent );
+			BigCommerceLogger.TraceLog( new ResponseInfo()
+			{
+				Mark = marker,
+				Url = url,
+				LibMethodName = callerMethodName,
+				Category = MessageCategoryEnum.Information,
+				Response = response,
+				StatusCode = statusCode,
+				RemainingCalls = remainingCalls,
+				SystemVersion = systemVersion,
+				TenantId = this._config.TenantId,
+				ChannelAccountId = this._config.ChannelAccountId
+			} );
 		}
 
-		private Exception ExceptionForGetInfo( string url, Exception ex, string marker )
+		private Exception HandleExceptionAndLog( string url, string marker, string callerMethodName, string statusCode, Exception ex )
 		{
-			return new Exception( string.Format( "Marker: '{0}'. GET call for url '{1}' failed", marker, url ), ex );
-		}
+			BigCommerceLogger.LogTraceException( new ResponseInfo()
+			{
+				Mark = marker,
+				Url = url,
+				LibMethodName = callerMethodName,
+				StatusCode = statusCode,
+				Category = MessageCategoryEnum.Critical,
+				TenantId = this._config.TenantId,
+				ChannelAccountId = this._config.ChannelAccountId
+			}, ex );
 
-		private void LogPutInfo( string url, string jsonContent, string marker )
-		{
-			BigCommerceLogger.Log.Trace( "Marker: '{0}'. PUT/POST data for url '{1}':\n{2}", marker, url, jsonContent );
-		}
-
-		private void LogPutInfoResult( string url, HttpStatusCode statusCode, string jsonContent, string marker )
-		{
-			BigCommerceLogger.Log.Trace( "Marker: '{0}'. PUT/POST data for url '{1}' has been completed with code '{2}'.\n{3}", marker, url, statusCode, jsonContent );
-		}
-
-		private Exception ExceptionForPutInfo( string url, Exception ex, string marker )
-		{
-			return new Exception( string.Format( "Marker: '{0}'. PUT/POST data for url '{1}' failed", marker, url ), ex );
+			return new Exception( string.Format( "Marker: '{0}'. Call to url '{1}' failed", marker, url ), ex );
 		}
 		#endregion
 

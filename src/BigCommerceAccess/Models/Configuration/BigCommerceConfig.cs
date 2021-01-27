@@ -16,6 +16,9 @@ namespace BigCommerceAccess.Models.Configuration
 		public string ClientSecret{ get; private set; }
 		public string Token{ get; private set; }
 
+		public long? TenantId { get; set; }
+		public long? ChannelAccountId { get; set; }
+
 		public BigCommerceConfig( string shopName, string userName, string apiKey )
 		{
 			Condition.Requires( shopName, "shopName" ).IsNotNullOrWhiteSpace();

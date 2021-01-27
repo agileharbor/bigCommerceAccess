@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -48,9 +48,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\LinqToCsv.1.5.0.0\lib\net35\LINQtoCSV.dll</HintPath>
     </Reference>
-    <Reference Include="Netco, Version=1.5.5.0, Culture=neutral, PublicKeyToken=9d732c15ac2ec2c9, processorArchitecture=MSIL">
-      <HintPath>..\packages\Netco.1.5.5\lib\net45\Netco.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Netco, Version=1.5.8.0, Culture=neutral, PublicKeyToken=9d732c15ac2ec2c9, processorArchitecture=MSIL">
+      <HintPath>..\packages\Netco.1.5.8\lib\net45\Netco.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>

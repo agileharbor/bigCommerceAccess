@@ -25,8 +25,9 @@ namespace BigCommerceAccess
 
 		protected virtual void FillWeightUnit( IEnumerable< BigCommerceProduct > products, string marker )
 		{
-			var store = ActionPolicies.Get.Get( () =>
-				this._webRequestServices.GetResponse< BigCommerceStore >( BigCommerceCommand.GetStoreV2_OAuth, string.Empty, marker ) );
+			var command = BigCommerceCommand.GetStoreV2_OAuth;
+			var store = ActionPolicies.Get( marker, command.Command ).Get( () =>
+				this._webRequestServices.GetResponseByRelativeUrl< BigCommerceStore >( command, string.Empty, marker ) );
 			this.CreateApiDelay( store.Limits ).Wait(); //API requirement
 
 			foreach( var product in products )
@@ -37,8 +38,9 @@ namespace BigCommerceAccess
 
 		protected virtual async Task FillWeightUnitAsync( IEnumerable< BigCommerceProduct > products, CancellationToken token, string marker )
 		{
-			var store = await ActionPolicies.GetAsync.Get( async () =>
-				await this._webRequestServices.GetResponseAsync< BigCommerceStore >( BigCommerceCommand.GetStoreV2_OAuth, string.Empty, marker ) );
+			var command = BigCommerceCommand.GetStoreV2_OAuth;
+			var store = await ActionPolicies.GetAsync( marker, command.Command ).Get( async () =>
+				await this._webRequestServices.GetResponseByRelativeUrlAsync< BigCommerceStore >( command, string.Empty, marker ) );
 			await this.CreateApiDelay( store.Limits, token ); //API requirement
 
 			foreach( var product in products )
@@ -53,8 +55,8 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-				var brandsWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceBrand > >( BigCommerceCommand.GetBrandsV2_OAuth, endpoint, marker ) );
+				var brandsWithinPage = ActionPolicies.Get( marker, endpoint ).Get( () =>
+					this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceBrand > >( BigCommerceCommand.GetBrandsV2_OAuth, endpoint, marker ) );
 				this.CreateApiDelay( brandsWithinPage.Limits ).Wait(); //API requirement
 
 				if( brandsWithinPage.Response == null )
@@ -74,8 +76,8 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-				var brandsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceBrand > >( BigCommerceCommand.GetBrandsV2_OAuth, endpoint, marker ) );
+				var brandsWithinPage = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
+					await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceBrand > >( BigCommerceCommand.GetBrandsV2_OAuth, endpoint, marker ) );
 				await this.CreateApiDelay( brandsWithinPage.Limits, token ); //API requirement
 
 				if( brandsWithinPage.Response == null )
@@ -96,8 +98,8 @@ namespace BigCommerceAccess
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var options = ActionPolicies.Get.Get( () =>
-						this._webRequestServices.GetResponse< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
+					var options = ActionPolicies.Get( marker, endpoint ).Get( () =>
+						this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
 					this.CreateApiDelay( options.Limits ).Wait(); //API requirement
 
 					if( options.Response == null )
@@ -118,8 +120,8 @@ namespace BigCommerceAccess
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var options = await ActionPolicies.GetAsync.Get( async () =>
-						await this._webRequestServices.GetResponseAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
+					var options = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
+						await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceProductOption > >( product.ProductOptionsReference.Url, endpoint, marker ) );
 					await this.CreateApiDelay( options.Limits, token ); //API requirement
 
 					if( options.Response == null )

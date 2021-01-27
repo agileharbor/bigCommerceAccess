@@ -45,8 +45,8 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var ordersWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2, compositeEndpoint, marker ) );
+				var ordersWithinPage = ActionPolicies.Get( marker, compositeEndpoint ).Get( () =>
+					this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2, compositeEndpoint, marker ) );
 				this.CreateApiDelay( ordersWithinPage.Limits ).Wait(); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -72,8 +72,8 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var ordersWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_OAuth, compositeEndpoint, marker ) );
+				var ordersWithinPage = ActionPolicies.Get( marker, compositeEndpoint ).Get( () =>
+					this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_OAuth, compositeEndpoint, marker ) );
 				this.CreateApiDelay( ordersWithinPage.Limits ).Wait(); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -99,8 +99,8 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2, compositeEndpoint, marker ) );
+				var ordersWithinPage = await ActionPolicies.GetAsync( marker, compositeEndpoint ).Get( async () =>
+					await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2, compositeEndpoint, marker ) );
 				await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -126,8 +126,8 @@ namespace BigCommerceAccess
 			for( var i = 1; i < int.MaxValue; i++ )
 			{
 				var compositeEndpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var ordersWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await this._webRequestServices.GetResponseAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_OAuth, compositeEndpoint, marker ) );
+				var ordersWithinPage = await ActionPolicies.GetAsync( marker, compositeEndpoint ).Get( async () =>
+					await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceOrder > >( BigCommerceCommand.GetOrdersV2_OAuth, compositeEndpoint, marker ) );
 				await this.CreateApiDelay( ordersWithinPage.Limits, token ); //API requirement
 
 				if( ordersWithinPage.Response == null )
@@ -153,9 +153,12 @@ namespace BigCommerceAccess
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
+					if ( string.IsNullOrWhiteSpace( order.ProductsReference?.Url ) )
+						break;
+
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var products = ActionPolicies.Get.Get( () =>
-						this._webRequestServices.GetResponse< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
+					var products = ActionPolicies.Get( marker, endpoint ).Get( () =>
+						this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
 					this.CreateApiDelay( products.Limits ).Wait(); //API requirement
 
 					if( products.Response == null )
@@ -174,9 +177,12 @@ namespace BigCommerceAccess
 			{
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
+					if ( string.IsNullOrWhiteSpace( order.ProductsReference?.Url ) )
+						break;
+
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var products = await ActionPolicies.GetAsync.Get( async () =>
-						await this._webRequestServices.GetResponseAsync< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
+					var products = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
+						await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceOrderProduct > >( order.ProductsReference.Url, endpoint, marker ) );
 					await this.CreateApiDelay( products.Limits, token ); //API requirement
 
 					if( products.Response == null )
@@ -194,11 +200,14 @@ namespace BigCommerceAccess
 		{
 			foreach( var order in orders )
 			{
+				if ( string.IsNullOrWhiteSpace( order.CouponsReference?.Url ) )
+					continue;
+
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var coupons = ActionPolicies.Get.Get( () =>
-						this._webRequestServices.GetResponse< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
+					var coupons = ActionPolicies.Get( marker, endpoint ).Get( () =>
+						this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
 					this.CreateApiDelay( coupons.Limits ).Wait(); //API requirement
 
 					if( coupons.Response == null )
@@ -215,11 +224,14 @@ namespace BigCommerceAccess
 			var threadCount = isUnlimit ? MaxThreadsCount : 1;
 			await orders.DoInBatchAsync( threadCount, async order =>
 			{
+				if ( string.IsNullOrWhiteSpace( order.CouponsReference?.Url ) )
+					return;
+
 				for( var i = 1; i < int.MaxValue; i++ )
 				{
 					var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
-					var coupons = await ActionPolicies.GetAsync.Get( async () =>
-						await this._webRequestServices.GetResponseAsync< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
+					var coupons = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
+						await this._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceOrderCoupon > >( order.CouponsReference.Url, endpoint, marker ) );
 					await this.CreateApiDelay( coupons.Limits, token ); //API requirement
 
 					if( coupons.Response == null )
@@ -237,7 +249,10 @@ namespace BigCommerceAccess
 		{
 			foreach( var order in orders )
 			{
-				var addresses = ActionPolicies.Get.Get( () =>
+				if ( string.IsNullOrWhiteSpace( order.ShippingAddressesReference?.Url ) )
+					continue;
+
+				var addresses = ActionPolicies.Get( marker, order.ShippingAddressesReference.Url ).Get( () =>
 					this._webRequestServices.GetResponse< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
 				order.ShippingAddresses = addresses.Response;
 				this.CreateApiDelay( addresses.Limits ).Wait(); //API requirement
@@ -249,7 +264,10 @@ namespace BigCommerceAccess
 			var threadCount = isUnlimit ? MaxThreadsCount : 1;
 			await orders.DoInBatchAsync( threadCount, async order =>
 			{
-				var addresses = await ActionPolicies.GetAsync.Get( async () =>
+				if ( string.IsNullOrWhiteSpace( order.ShippingAddressesReference?.Url ) )
+					return;
+
+				var addresses = await ActionPolicies.GetAsync( marker, order.ShippingAddressesReference.Url ).Get( async () =>
 					await this._webRequestServices.GetResponseAsync< List< BigCommerceShippingAddress > >( order.ShippingAddressesReference.Url, marker ) );
 				order.ShippingAddresses = addresses.Response;
 				await this.CreateApiDelay( addresses.Limits, token ); //API requirement

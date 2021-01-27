@@ -27,8 +27,8 @@ namespace BigCommerceAccess
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				endpoint += includeExtendInfo ? ParamsBuilder.GetFieldsForProductSync() : ParamsBuilder.GetFieldsForInventorySync();
-				var productsWithinPage = ActionPolicies.Get.Get( () =>
-					this._webRequestServices.GetResponse< List< BigCommerceProduct > >( BigCommerceCommand.GetProductsV2_OAuth, endpoint, marker ) );
+				var productsWithinPage = ActionPolicies.Get( marker, endpoint ).Get( () =>
+					this._webRequestServices.GetResponseByRelativeUrl< List< BigCommerceProduct > >( BigCommerceCommand.GetProductsV2_OAuth, endpoint, marker ) );
 				this.CreateApiDelay( productsWithinPage.Limits ).Wait(); //API requirement
 
 				if( productsWithinPage.Response == null )
@@ -58,8 +58,8 @@ namespace BigCommerceAccess
 			{
 				var endpoint = ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) );
 				endpoint += includeExtendedInfo ? ParamsBuilder.GetFieldsForProductSync() : ParamsBuilder.GetFieldsForInventorySync();
-				var productsWithinPage = await ActionPolicies.GetAsync.Get( async () =>
-					await base._webRequestServices.GetResponseAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProductsV2_OAuth, endpoint, marker ) );
+				var productsWithinPage = await ActionPolicies.GetAsync( marker, endpoint ).Get( async () =>
+					await base._webRequestServices.GetResponseByRelativeUrlAsync< List< BigCommerceProduct > >( BigCommerceCommand.GetProductsV2_OAuth, endpoint, marker ) );
 				await this.CreateApiDelay( productsWithinPage.Limits, token ); //API requirement
 
 				if( productsWithinPage.Response == null )
@@ -91,7 +91,7 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-				var limit = ActionPolicies.Submit.Get( () =>
+				var limit = ActionPolicies.Submit( marker, endpoint ).Get( () =>
 					this._webRequestServices.PutData( BigCommerceCommand.UpdateProductV2_OAuth, endpoint, jsonContent, marker ) );
 				this.CreateApiDelay( limit ).Wait(); //API requirement
 			}
@@ -106,14 +106,14 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductUpdateEndpoint( product.Id );
 				var jsonContent = new { inventory_level = product.Quantity }.ToJson();
 
-				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
+				var limit = await ActionPolicies.SubmitAsync( marker, endpoint ).Get( async () =>
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductV2_OAuth, endpoint, jsonContent, marker ) );
 
 				await this.CreateApiDelay( limit, token ); //API requirement
 			} );
 		}
 
-		public void UpdateProductOptions(List<BigCommerceProductOption> productOptions)
+		public void UpdateProductOptions( List<BigCommerceProductOption> productOptions )
 		{
 			var marker = this.GetMarker();
 
@@ -122,7 +122,7 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
 				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
 
-				var limit = ActionPolicies.Submit.Get( () =>
+				var limit = ActionPolicies.Submit( marker, endpoint ).Get( () =>
 					this._webRequestServices.PutData( BigCommerceCommand.UpdateProductV2_OAuth, endpoint, jsonContent, marker ) );
 				this.CreateApiDelay( limit ).Wait(); //API requirement
 			}
@@ -137,7 +137,7 @@ namespace BigCommerceAccess
 				var endpoint = ParamsBuilder.CreateProductOptionUpdateEndpoint( option.ProductId, option.Id );
 				var jsonContent = new { inventory_level = option.Quantity }.ToJson();
 
-				var limit = await ActionPolicies.SubmitAsync.Get( async () =>
+				var limit = await ActionPolicies.SubmitAsync( marker, endpoint ).Get( async () =>
 					await this._webRequestServices.PutDataAsync( BigCommerceCommand.UpdateProductV2_OAuth, endpoint, jsonContent, marker ) );
 				await this.CreateApiDelay( limit, token ); //API requirement
 			} );
