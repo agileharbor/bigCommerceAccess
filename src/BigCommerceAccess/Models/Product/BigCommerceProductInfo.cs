@@ -42,6 +42,12 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "images" ) ]
 		public List< BigCommerceImage > Images{ get; set; }
 
+		[DataMember(Name = "categories")]
+		public int[] Categories { get; set; }
+
+		[DataMember(Name = "custom_url")]
+		public BigCommerceCustomURL Product_URL { get; set; }
+
 		[ DataMember( Name = "variants" ) ]
 		public List< BigCommerceVariant > Variants{ get; set; }
 

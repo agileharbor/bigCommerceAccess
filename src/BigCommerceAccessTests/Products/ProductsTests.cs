@@ -7,6 +7,7 @@ using BigCommerceAccess;
 using BigCommerceAccess.Misc;
 using BigCommerceAccess.Models.Configuration;
 using BigCommerceAccess.Models.Product;
+using BigCommerceAccess.Models.Category;
 using FluentAssertions;
 using LINQtoCSV;
 using Netco.Logging;
@@ -74,7 +75,7 @@ namespace BigCommerceAccessTests.Products
 			var products = service.GetProducts();
 
 			products.Count().Should().BeGreaterThan( 0 );
-			var productWithImages = products.Where( pr => pr.ImageUrls != null && !string.IsNullOrWhiteSpace( pr.ImageUrls.StandardUrl ) );
+			var productWithImages = products.Where( pr => pr.ThumbnailImageURL != null && !string.IsNullOrWhiteSpace( pr.ThumbnailImageURL.StandardUrl ) );
 			productWithImages.Count().Should().BeGreaterThan( 0 );
 		}
 
@@ -86,16 +87,25 @@ namespace BigCommerceAccessTests.Products
 
 			products.Count().Should().BeGreaterThan( 0 );
 		}
-
-		[ Test ]
+		
+		[Test]
 		public async Task GetProductsImagesV3Async()
 		{
 			var service = this.BigCommerceFactory.CreateProductsService( this.ConfigV3 );
 			var products = await service.GetProductsAsync( CancellationToken.None );
 			
 			products.Count().Should().BeGreaterThan( 0 );
-			var productWithImages = products.Where( pr => pr.ImageUrls != null && !string.IsNullOrWhiteSpace( pr.ImageUrls.StandardUrl ) );
+			var productWithImages = products.Where( pr => pr.ThumbnailImageURL != null && !string.IsNullOrWhiteSpace( pr.ThumbnailImageURL.StandardUrl ) );
 			productWithImages.Count().Should().BeGreaterThan( 0 );
+		}
+
+		[Test]
+		public List<BigCommerceCategory> GetCategoriesV3()
+		{
+			var service = this.BigCommerceFactory.CreateCategoriesService(this.ConfigV3);
+			List<BigCommerceCategory> categories = service.GetCategories();
+
+			return categories;
 		}
 
 		[ Test ]

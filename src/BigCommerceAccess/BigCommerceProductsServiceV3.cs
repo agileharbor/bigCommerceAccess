@@ -25,41 +25,45 @@ namespace BigCommerceAccess
 		}
 
 		#region Get
-		public List< BigCommerceProduct > GetProducts( bool includeExtendedInfo )
+		public List<BigCommerceProduct> GetProducts(bool includeExtendedInfo)
 		{
 			var mainEndpoint = "?include=variants,images";
-			var products = new List< BigCommerceProduct >();
+			var products = new List<BigCommerceProduct>();
 			var marker = this.GetMarker();
 
-			for( var i = 1; i < int.MaxValue; i++ )
+			for (var i = 1; i < int.MaxValue; i++)
 			{
-				var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var productsWithinPage = ActionPolicy.Handle< Exception >().Retry( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
+				var endpoint = mainEndpoint.ConcatParams(ParamsBuilder.CreateGetNextPageParams(new BigCommerceCommandConfig(i, RequestMaxLimit)));
+				var productsWithinPage = ActionPolicy.Handle<Exception>().Retry(ActionPolicies.RetryCount, (ex, retryAttempt) =>
 				{
-					if ( PageAdjuster.TryAdjustPageIfResponseTooLarge( new PageInfo( i, this.RequestMaxLimit ), this.RequestMinLimit, ex, out var newPageInfo ) )
+					if (PageAdjuster.TryAdjustPageIfResponseTooLarge(new PageInfo(i, this.RequestMaxLimit), this.RequestMinLimit, ex, out var newPageInfo))
 					{
 						i = newPageInfo.Index;
 						this.RequestMaxLimit = newPageInfo.Size;
 					}
 
-					ActionPolicies.LogRetryAndWait( ex, marker, endpoint, retryAttempt );
-				} ).Get( () => {
-					return this._webRequestServices.GetResponseByRelativeUrl< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
-				} );
-				
-				this.CreateApiDelay( productsWithinPage.Limits ).Wait(); //API requirement
+					ActionPolicies.LogRetryAndWait(ex, marker, endpoint, retryAttempt);
+				}).Get(() => {
+					return this._webRequestServices.GetResponseByRelativeUrl<BigCommerceProductInfoData>(BigCommerceCommand.GetProductsV3, endpoint, marker);
+				});
 
-				if( productsWithinPage.Response == null )
+				this.CreateApiDelay(productsWithinPage.Limits).Wait(); //API requirement
+
+				if (productsWithinPage.Response == null)
 					break;
 
-				foreach( var product in productsWithinPage.Response.Data )
+				foreach (var product in productsWithinPage.Response.Data)
 				{
-					var productImage = product.Images.FirstOrDefault( img => img.IsThumbnail );
+					var productImageThumbnail = product.Images.FirstOrDefault(img => img.IsThumbnail);
 
-					products.Add( new BigCommerceProduct
+					var additional_images = product.Images;
+
+					var custom_url = product.Product_URL;
+
+					products.Add(new BigCommerceProduct
 					{
 						Id = product.Id,
-						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum( product.InventoryTracking ),
+						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum(product.InventoryTracking),
 						Upc = product.Upc,
 						Sku = product.Sku,
 						Name = product.Name,
@@ -71,11 +75,13 @@ namespace BigCommerceAccess
 						Weight = product.Weight,
 						BrandId = product.BrandId,
 						Quantity = product.Quantity,
-						ImageUrls = new BigCommerceProductPrimaryImages()
-						{ 
-							StandardUrl = productImage != null ? productImage.UrlStandard : string.Empty
+						Product_URL = custom_url.ProductURL,
+						Categories = product.Categories,
+						ThumbnailImageURL = new BigCommerceProductPrimaryImages()
+						{
+							StandardUrl = productImageThumbnail != null ? productImageThumbnail.UrlStandard : string.Empty
 						},
-						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
+						ProductOptions = product.Variants.Select(x => new BigCommerceProductOption
 						{
 							Id = x.Id,
 							ProductId = x.ProductId,
@@ -86,59 +92,66 @@ namespace BigCommerceAccess
 							CostPrice = x.CostPrice,
 							Weight = x.Weight,
 							ImageFile = x.ImageUrl
-						} ).ToList()
-					} );
+						}).ToList(),
+						Main_Images = product.Images.Select(y => new BigCommerceImage
+						{
+							UrlStandard = y.UrlStandard,
+							IsThumbnail = y.IsThumbnail
+						}).ToList()
+					});
 				}
 
-				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
+				if (productsWithinPage.Response.Data.Count < RequestMaxLimit)
 					break;
 			}
 
-			if( includeExtendedInfo )
+			if (includeExtendedInfo)
 			{
-				base.FillWeightUnit( products, marker );
-				base.FillBrands( products, marker );
+				base.FillWeightUnit(products, marker);
+				base.FillBrands(products, marker);
 			}
 
 			return products;
 		}
 
-		public async Task< List< BigCommerceProduct > > GetProductsAsync( CancellationToken token, bool includeExtendedInfo )
+		public async Task<List<BigCommerceProduct>> GetProductsAsync(CancellationToken token, bool includeExtendedInfo)
 		{
 			var mainEndpoint = "?include=variants,images";
-			var products = new List< BigCommerceProduct >();
+			var products = new List<BigCommerceProduct>();
 			var marker = this.GetMarker();
 
-			for( var i = 1; i < int.MaxValue; i++ )
+			for (var i = 1; i < int.MaxValue; i++)
 			{
-				var endpoint = mainEndpoint.ConcatParams( ParamsBuilder.CreateGetNextPageParams( new BigCommerceCommandConfig( i, RequestMaxLimit ) ) );
-				var productsWithinPage = await ActionPolicyAsync.Handle< Exception >().RetryAsync( ActionPolicies.RetryCount, ( ex, retryAttempt ) =>
+				var endpoint = mainEndpoint.ConcatParams(ParamsBuilder.CreateGetNextPageParams(new BigCommerceCommandConfig(i, RequestMaxLimit)));
+				var productsWithinPage = await ActionPolicyAsync.Handle<Exception>().RetryAsync(ActionPolicies.RetryCount, (ex, retryAttempt) =>
 				{
-					if ( PageAdjuster.TryAdjustPageIfResponseTooLarge( new PageInfo( i, this.RequestMaxLimit ), this.RequestMinLimit, ex, out var newPageInfo ) )
+					if (PageAdjuster.TryAdjustPageIfResponseTooLarge(new PageInfo(i, this.RequestMaxLimit), this.RequestMinLimit, ex, out var newPageInfo))
 					{
 						i = newPageInfo.Index;
 						this.RequestMaxLimit = newPageInfo.Size;
 					}
 
-					return ActionPolicies.LogRetryAndWaitAsync( ex, marker, endpoint, retryAttempt );
-				} ).Get( () => {
-					return this._webRequestServices.GetResponseByRelativeUrlAsync< BigCommerceProductInfoData >( BigCommerceCommand.GetProductsV3, endpoint, marker ); 
-				} );
-				
-				await this.CreateApiDelay( productsWithinPage.Limits, token ); //API requirement
+					return ActionPolicies.LogRetryAndWaitAsync(ex, marker, endpoint, retryAttempt);
+				}).Get(() => {
+					return this._webRequestServices.GetResponseByRelativeUrlAsync<BigCommerceProductInfoData>(BigCommerceCommand.GetProductsV3, endpoint, marker);
+				});
 
-				if( productsWithinPage.Response == null )
+				await this.CreateApiDelay(productsWithinPage.Limits, token); //API requirement
+
+				if (productsWithinPage.Response == null)
 					break;
 
-				foreach( var product in productsWithinPage.Response.Data )
+				foreach (var product in productsWithinPage.Response.Data)
 				{
-					var productImage = product.Images.FirstOrDefault( img => img.IsThumbnail );
+					var productImageThumbnail = product.Images.FirstOrDefault(img => img.IsThumbnail);
 
-					products.Add( new BigCommerceProduct
+					var additional_images = product.Images;
+
+					products.Add(new BigCommerceProduct
 					{
 						Id = product.Id,
 						Sku = product.Sku,
-						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum( product.InventoryTracking ),
+						InventoryTracking = this.ToCompatibleWithV2InventoryTrackingEnum(product.InventoryTracking),
 						Upc = product.Upc,
 						Name = product.Name,
 						Description = product.Description,
@@ -149,11 +162,11 @@ namespace BigCommerceAccess
 						Weight = product.Weight,
 						BrandId = product.BrandId,
 						Quantity = product.Quantity,
-						ImageUrls = new BigCommerceProductPrimaryImages()
-						{ 
-							StandardUrl = productImage != null ? productImage.UrlStandard : string.Empty
+						ThumbnailImageURL = new BigCommerceProductPrimaryImages()
+						{
+							StandardUrl = productImageThumbnail != null ? productImageThumbnail.UrlStandard : string.Empty
 						},
-						ProductOptions = product.Variants.Select( x => new BigCommerceProductOption
+						ProductOptions = product.Variants.Select(x => new BigCommerceProductOption
 						{
 							Id = x.Id,
 							ProductId = x.ProductId,
@@ -164,18 +177,23 @@ namespace BigCommerceAccess
 							CostPrice = x.CostPrice,
 							Weight = x.Weight,
 							ImageFile = x.ImageUrl
-						} ).ToList()
-					} );
+						}).ToList(),
+						Main_Images = product.Images.Select(y => new BigCommerceImage
+						{
+							UrlStandard = y.UrlStandard,
+							IsThumbnail = y.IsThumbnail
+						}).ToList()
+					});
 				}
 
-				if( productsWithinPage.Response.Data.Count < RequestMaxLimit )
+				if (productsWithinPage.Response.Data.Count < RequestMaxLimit)
 					break;
 			}
 
-			if( includeExtendedInfo )
+			if (includeExtendedInfo)
 			{
-				await base.FillWeightUnitAsync( products, token, marker );
-				await base.FillBrandsAsync( products, token, marker );
+				await base.FillWeightUnitAsync(products, token, marker);
+				await base.FillBrandsAsync(products, token, marker);
 			}
 
 			return products;
