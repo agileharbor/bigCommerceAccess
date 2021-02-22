@@ -29,6 +29,12 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "price" ) ]
 		public decimal? Price{ get; set; }
 
+		[DataMember(Name = "is_visible")]
+		public bool IsVisible { get; set; }
+
+		[DataMember(Name = "type")]
+		public string Type { get; set; }
+
 		[ DataMember( Name = "sale_price" ) ]
 		public decimal? SalePrice{ get; set; }
 

@@ -69,6 +69,8 @@ namespace BigCommerceAccess
 						Name = product.Name,
 						Description = product.Description,
 						Price = product.Price,
+						IsVisible = product.IsVisible,
+						Type = product.Type,
 						SalePrice = product.SalePrice,
 						RetailPrice = product.RetailPrice,
 						CostPrice = product.CostPrice,

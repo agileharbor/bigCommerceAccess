@@ -21,8 +21,14 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "description" ) ]
 		public string Description{ get; set; }
 
-		[ DataMember( Name = "price" ) ]
-		public decimal? Price{ get; set; }
+		[DataMember(Name = "price")]
+		public decimal? Price { get; set; }
+
+		[ DataMember( Name = "is_visible") ]
+		public bool IsVisible { get; set; }
+
+		[DataMember(Name = "type")]
+		public string Type { get; set; }  //One of: "physical" - a physical stock unit, "digital" - a digital download.
 
 		[ DataMember( Name = "sale_price" ) ]
 		public decimal? SalePrice{ get; set; }
