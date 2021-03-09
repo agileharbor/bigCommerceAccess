@@ -25,6 +25,27 @@ namespace BigCommerceAccess
 		}
 
 		#region Get
+
+		public string GetStoreName()
+		{
+			var marker = this.GetMarker();
+			return base.GetStoreName(marker);
+
+		}
+
+		public string GetStoreDomain()
+		{
+			var marker = this.GetMarker();
+			return base.GetDomain(marker);
+
+		}
+
+		public string GetStoreSafeURL()
+		{
+			var marker = this.GetMarker();
+			return base.GetSecureURL(marker);
+
+		}
 		public List<BigCommerceProduct> GetProducts(bool includeExtendedInfo)
 		{
 			var mainEndpoint = "?include=variants,images";
@@ -100,7 +121,7 @@ namespace BigCommerceAccess
 							UrlStandard = y.UrlStandard,
 							IsThumbnail = y.IsThumbnail
 						}).ToList()
-					});
+					}) ;
 				}
 
 				if (productsWithinPage.Response.Data.Count < RequestMaxLimit)
