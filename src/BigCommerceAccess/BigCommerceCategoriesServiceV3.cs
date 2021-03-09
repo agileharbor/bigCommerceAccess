@@ -34,7 +34,7 @@ namespace BigCommerceAccess
 			for (var i = 1; i < int.MaxValue; i++)
 			{
 				var endpoint = "";//mainEndpoint.ConcatParams(ParamsBuilder.CreateGetNextPageParams(new BigCommerceCommandConfig(i, RequestMaxLimit)));
-				var productsWithinPage = ActionPolicy.Handle<Exception>().Retry(ActionPolicies.RetryCount, (ex, retryAttempt) =>
+				var categoriesWithinPage = ActionPolicy.Handle<Exception>().Retry(ActionPolicies.RetryCount, (ex, retryAttempt) =>
 				{
 					if (PageAdjuster.TryAdjustPageIfResponseTooLarge(new PageInfo(i, this.RequestMaxLimit), this.RequestMinLimit, ex, out var newPageInfo))
 					{
@@ -47,28 +47,28 @@ namespace BigCommerceAccess
 					return this._webRequestServices.GetResponseByRelativeUrl<BigCommerceCategoryInfoData>(BigCommerceCommand.GetCategoriesV3, endpoint, marker);
 				});
 
-				this.CreateApiDelay(productsWithinPage.Limits).Wait(); //API requirement
+				this.CreateApiDelay(categoriesWithinPage.Limits).Wait(); //API requirement
 
-				if (productsWithinPage.Response == null)
+				if (categoriesWithinPage.Response == null)
 					break;
 
-				foreach (var product in productsWithinPage.Response.Data)
+				foreach (var category in categoriesWithinPage.Response.Data)
 				{
-					var productCatURL = product.Category_URL;
+					var CatURL = category.Category_URL;
 
 					categories.Add(new BigCommerceCategory
 					{
-						Id = product.Id,
+						Id = category.Id,
 						Category_URL = new BigCommerceCategoryURL()
 						{
-							Url = productCatURL.Url
+							Url = CatURL.Url
 						},
-						Category_Name = product.Name
-
+						Category_Name = category.Name,
+						IsVisible = category.IsVisible
 					});
 				}
 
-				if (productsWithinPage.Response.Data.Length < RequestMaxLimit)
+				if (categoriesWithinPage.Response.Data.Length < RequestMaxLimit)
 					break;
 			}
 

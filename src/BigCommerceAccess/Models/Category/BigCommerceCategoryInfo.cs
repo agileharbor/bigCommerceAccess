@@ -15,5 +15,8 @@ namespace BigCommerceAccess.Models.Category
 		[DataMember(Name = "custom_url")]		
 		public BigCommerceCategoryURL Category_URL { get; set; }
 
+		[DataMember(Name = "is_visible")]
+		public bool IsVisible { get; set; }
+
 	}
 }
