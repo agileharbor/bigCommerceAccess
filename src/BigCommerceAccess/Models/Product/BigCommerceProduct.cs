@@ -23,6 +23,12 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "name" ) ]
 		public string Name{ get; set; }
 
+		[DataMember(Name = "availability")]
+		public string Availability { get; set; }  
+
+		[DataMember(Name = "condition")]
+		public string Condition { get; set; } 
+
 		[ DataMember( Name = "description" ) ]
 		public string Description{ get; set; }
 

@@ -12,6 +12,12 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "name" ) ]
 		public string Name{ get; set; }
 
+		[DataMember(Name = "availability")]
+		public string Availability { get; set; }  //Possible values: available, disabled, preorder
+
+		[DataMember(Name = "condition")]
+		public string Condition { get; set; } //Possible values: New, Used, Refurbished
+
 		[ DataMember( Name = "sku" ) ]
 		public string Sku{ get; set; }
 
