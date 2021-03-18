@@ -26,8 +26,7 @@ namespace BigCommerceAccess
 		#region Get
 
 		public List<BigCommerceCategory> GetCategories()
-		{
-			var mainEndpoint = "";
+		{			
 			var categories = new List<BigCommerceCategory>();
 			var marker = this.GetMarker();
 
@@ -77,8 +76,7 @@ namespace BigCommerceAccess
 		}
 
 		public async Task<List<BigCommerceCategory>> GetCategoriesAsync(CancellationToken token)
-		{
-			var mainEndpoint = "";
+		{			
 			var categories = new List<BigCommerceCategory>();
 			var marker = this.GetMarker();
 
