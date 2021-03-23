@@ -12,6 +12,12 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "name" ) ]
 		public string Name{ get; set; }
 
+		[DataMember(Name = "availability")]
+		public string Availability { get; set; }  //Possible values: available, disabled, preorder
+
+		[DataMember(Name = "condition")]
+		public string Condition { get; set; } //Possible values: New, Used, Refurbished
+
 		[ DataMember( Name = "sku" ) ]
 		public string Sku{ get; set; }
 
@@ -21,8 +27,14 @@ namespace BigCommerceAccess.Models.Product
 		[ DataMember( Name = "description" ) ]
 		public string Description{ get; set; }
 
-		[ DataMember( Name = "price" ) ]
-		public decimal? Price{ get; set; }
+		[DataMember(Name = "price")]
+		public decimal? Price { get; set; }
+
+		[ DataMember( Name = "is_visible") ]
+		public bool IsVisible { get; set; }
+
+		[DataMember(Name = "type")]
+		public string Type { get; set; }  //One of: "physical" - a physical stock unit, "digital" - a digital download.
 
 		[ DataMember( Name = "sale_price" ) ]
 		public decimal? SalePrice{ get; set; }
@@ -41,6 +53,12 @@ namespace BigCommerceAccess.Models.Product
 
 		[ DataMember( Name = "images" ) ]
 		public List< BigCommerceImage > Images{ get; set; }
+
+		[DataMember(Name = "categories")]
+		public int[] Categories { get; set; }
+
+		[DataMember(Name = "custom_url")]
+		public BigCommerceCustomURL Product_URL { get; set; }
 
 		[ DataMember( Name = "variants" ) ]
 		public List< BigCommerceVariant > Variants{ get; set; }

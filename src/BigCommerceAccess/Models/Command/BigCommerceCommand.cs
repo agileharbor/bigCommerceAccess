@@ -23,6 +23,8 @@
 		public static readonly BigCommerceCommand GetProductsV3 = new BigCommerceCommand( "/v3/catalog/products" );
 		public static readonly BigCommerceCommand UpdateProductsV3 = new BigCommerceCommand( "/v3/catalog/products" );
 
+		public static readonly BigCommerceCommand GetCategoriesV3 = new BigCommerceCommand("/v3/catalog/categories");
+
 		private BigCommerceCommand( string command )
 		{
 			this.Command = command;

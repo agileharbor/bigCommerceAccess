@@ -14,17 +14,32 @@ namespace BigCommerceAccess.Models.Product
 
 		public List< BigCommerceProductOption > ProductOptions{ get; set; }
 
+		[DataMember(Name = "main_images")]
+		public List<BigCommerceImage> Main_Images { get; set; }
+
 		[ DataMember( Name = "upc" ) ]
 		public string Upc{ get; set; }
 
 		[ DataMember( Name = "name" ) ]
 		public string Name{ get; set; }
 
+		[DataMember(Name = "availability")]
+		public string Availability { get; set; }  
+
+		[DataMember(Name = "condition")]
+		public string Condition { get; set; } 
+
 		[ DataMember( Name = "description" ) ]
 		public string Description{ get; set; }
 
 		[ DataMember( Name = "price" ) ]
 		public decimal? Price{ get; set; }
+
+		[DataMember(Name = "is_visible")]
+		public bool IsProductVisible { get; set; }
+
+		[DataMember(Name = "type")]
+		public string ProductType { get; set; }
 
 		[ DataMember( Name = "sale_price" ) ]
 		public decimal? SalePrice{ get; set; }
@@ -45,12 +60,19 @@ namespace BigCommerceAccess.Models.Product
 
 		public string BrandName{ get; set; }
 
-		[ DataMember( Name = "primary_image" ) ]
-		public BigCommerceProductPrimaryImages ImageUrls{ get; set; }
+		[ DataMember( Name = "thumbnail_image") ]
+		public BigCommerceProductPrimaryImages ThumbnailImageURL { get; set; }
+
+		[DataMember(Name = "custom_url")]
+		public string Product_URL { get; set; }
+
+		[DataMember(Name = "categories")]
+		public int[] Categories { get; set; }
 
 		public BigCommerceProduct()
 		{
 			this.ProductOptions = new List< BigCommerceProductOption >();
+			this.Main_Images = new List<BigCommerceImage>();
 		}
 	}
 }
